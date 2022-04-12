@@ -1,31 +1,53 @@
-import { Heading } from "@chakra-ui/react";
-import * as cheerio from "cheerio";
+import * as React from "react";
+import errToJSON from "@stdlib/error-to-json";
 
-import { myFetchForHtml } from "../utils/myFetchForHtml";
+import type { NextPage } from "next";
+import Container from "@mui/material/Container";
+import Typography from "@mui/material/Typography";
+import Box from "@mui/material/Box";
+import Link from "../components/Link";
 
-export default function IndexPage({ text }: any) {
-  const foo = "&nbsp;  abcd  ";
-  return <Heading>{text}</Heading>;
-}
+import {
+  fetchBookContent,
+  BookContent,
+  fetchBookChunks,
+} from "../utils/fetchBookHelper";
 
-async function listChapters(url: string) {}
-
-async function fetchNovel(url: string): Promise<{ rawHtml: string }> {
-  const res = await myFetchForHtml(url);
-  const $ = cheerio.load(res.data);
-  const xs = $("head").children();
-  console.log("-------------");
-  // xs.each((i, x) => x.children)
-  return {
-    rawHtml: $.text(),
-  };
-}
-
-export async function getServerSideProps() {
-  const result = await fetchNovel(
-    `https://www.ptwxz.com/html/5/5432/2865710.html`
+const Home: NextPage = () => {
+  return (
+    <Container maxWidth="lg">
+      <Box
+        sx={{
+          my: 4,
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
+        <Typography variant="h4" component="h1" gutterBottom>
+          MUI v5 + Next.js with TypeScript example
+        </Typography>
+        <Link href="/about" color="secondary">
+          Go to the about page
+        </Link>
+      </Box>
+    </Container>
   );
-  return {
-    props: { text: result.rawHtml }, // will be passed to the page component as props
-  };
+};
+
+export async function getServerSideProps(...args: any) {
+  try {
+    const list = await fetchBookChunks(`https://www.ptwxz.com/html/0/48`);
+    const fetchNovelResult = await fetchBookContent(
+      `https://www.ptwxz.com/html/0/48/192727.html`
+    );
+    return {
+      props: { fetchNovelResult },
+    };
+  } catch (err: any) {
+    return { props: { err: { message: errToJSON(err)?.message } } };
+  }
 }
+
+export default Home;

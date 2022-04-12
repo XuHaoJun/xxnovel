@@ -18,24 +18,26 @@ function getCharset($: CheerioAPI): string {
   return "utf-8";
 }
 
-function convertToUtf8(data: Buffer): string {
+async function convertToUtf8(data: Buffer): Promise<string> {
   const $ = cheerio.load(data);
   const charset = getCharset($);
   return iconv.decode(data, charset).toString();
 }
 
-function convertToZhTw(data: string): Promise<string> {
+async function convertToZhTw(data: string): Promise<string> {
   const converter: OpenCC = new OpenCC("s2t.json");
   return converter.convertPromise(data);
 }
 
-export async function myFetchForHtml(url: string): Promise<AxiosResponse<string>> {
+export async function myFetchForHtml(
+  url: string
+): Promise<AxiosResponse<string>> {
   const res = await axios.get<Buffer>(url, {
     responseType: "arraybuffer",
     headers: { "User-Agent": randomUa.getRandom() },
   });
   const { data } = res;
-  const toUtf8 = convertToUtf8(data);
+  const toUtf8 = await convertToUtf8(data);
   const rawHtml = await convertToZhTw(toUtf8);
   return { ...res, data: rawHtml } as AxiosResponse<string>;
 }
