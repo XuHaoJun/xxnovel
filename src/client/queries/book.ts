@@ -6,8 +6,12 @@ export const useBook = (bookId: string) => {
   return { book };
 };
 
+export const getGoodBookInfosQueryKey = () => {
+  return ["books", "goods"];
+};
+
 export const useGoodBookInfos = () => {
-  const { data: goodBookInfos } = useQuery(["books", "good"], () =>
+  const { data: goodBookInfos } = useQuery(getGoodBookInfosQueryKey(), () =>
     getGoodBookInfos()
   );
   return {
@@ -24,10 +28,10 @@ export const useBookChunk = ({
 }) => {
   const { book } = useBook(bookId);
 
-  const { data: bookChunk } = useQuery(
+  const { data: bookChunk, ...getBookChunkOthers } = useQuery(
     ["books", bookId, "chunks", bookChunkId],
     () => getBookChunk(bookId, bookChunkId)
   );
 
-  return { book, bookChunk };
+  return { book, bookChunk, getBookChunkOthers };
 };

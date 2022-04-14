@@ -7,7 +7,8 @@ export async function getBook(bookId: string): Promise<any> {
 }
 
 export async function getGoodBookInfos(): Promise<any> {
-  return (await hc.get(`books/good`)).data;
+  return [];
+  return (await hc.get(`books/goods`)).data;
 }
 
 export async function getBookChunkInfos(bookId: string): Promise<any> {
@@ -18,6 +19,7 @@ export async function getBookChunk(
   bookId: string,
   bookChunkId: string
 ): Promise<any> {
+  return new Date().toISOString();
   return (await hc.get(`books/${bookId}/chunks/${bookChunkId}`)).data;
 }
 

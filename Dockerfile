@@ -20,7 +20,7 @@ COPY yarn.lock .
 RUN yarn install --frozen-lockfile --production
 RUN cp -R node_modules /production_node_modules
 # prod & dev 模組全部安裝
-RUN yarn install
+RUN yarn install --frozen-lockfile
 
 
 # 
