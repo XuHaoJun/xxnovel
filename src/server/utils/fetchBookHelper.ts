@@ -1,6 +1,8 @@
 import * as cheerio from "cheerio";
 import _ from "lodash";
 import type { Text } from "domhandler";
+import "moment-timezone";
+import moment from "moment";
 
 import { myFetchForHtml } from "./myFetchForHtml";
 import { ElementType } from "htmlparser2";
@@ -30,7 +32,96 @@ export interface Book {
   chunks?: Array<BookChunk>;
   url?: string;
   createdAt?: Date;
+  updatedAt?: Date;
+  status?: string;
   importedAt?: Date;
+  category?: string;
+  numChar?: number;
+  thumbnailUrl?: string;
+}
+
+export async function fetchGoodBookInfoUrls(
+  url = "https://www.ptwxz.com/"
+): Promise<Array<string>> {
+  const res = await myFetchForHtml(url);
+  const $ = cheerio.load(res.data);
+  const xs = $("a").toArray();
+  const founds: Array<string> = [];
+  for (const x of xs) {
+    const href = x.attribs.href;
+    const isBookInfoPathname = (s?: string) =>
+      Boolean(s?.startsWith("/bookinfo"));
+    if (isBookInfoPathname(href)) {
+      const parsedUrl = new URL(url);
+      parsedUrl.pathname = href;
+      founds.push(parsedUrl.toString());
+    }
+  }
+  return founds;
+}
+
+export async function fetchBookInfo(url: string): Promise<Book | null> {
+  const parsedUrl = new URL(url);
+  const res = await myFetchForHtml(url);
+
+  const $ = cheerio.load(res.data);
+
+  const title = $(
+    "#content > table > tbody > tr:nth-child(1) > td > table > tbody > tr:nth-child(1) > td > table > tbody > tr > td > span > h1"
+  )
+    .text()
+    .trim();
+  const category = $(
+    "#content > table > tbody > tr:nth-child(1) > td > table > tbody > tr:nth-child(2) > td:nth-child(1)"
+  )
+    .text()
+    .split("：")[1]
+    .trim();
+  const authorName = $(
+    "#content > table > tbody > tr:nth-child(1) > td > table > tbody > tr:nth-child(2) > td:nth-child(2)"
+  )
+    .text()
+    .split("：")[1]
+    ?.trim();
+  const status = $(
+    "#content > table > tbody > tr:nth-child(1) > td > table > tbody > tr:nth-child(3) > td:nth-child(2)"
+  )
+    .text()
+    .split("：")[1]
+    ?.trim();
+
+  const thumbUrl = new URL(parsedUrl.toString());
+  const thumbPathname = $(
+    "#content > table > tbody > tr:nth-child(4) > td > table > tbody > tr > td:nth-child(2) > a > img"
+  ).attr("src");
+  thumbUrl.pathname = thumbPathname || "";
+  const thumbnailUrl = thumbUrl.toString();
+
+  const numCharStr = $(
+    "#content > table > tbody > tr:nth-child(1) > td > table > tbody > tr:nth-child(2) > td:nth-child(4)"
+  )
+    .text()
+    .split("：")[1]
+    ?.trim();
+  const numChar = Number.parseInt(numCharStr, 10);
+
+  const updatedAt0 = $(
+    "#content > table > tbody > tr:nth-child(1) > td > table > tbody > tr:nth-child(3) > td:nth-child(1)"
+  )
+    .text()
+    .split("：")[1]
+    .trim();
+  const updatedAt = moment.tz(updatedAt0, "Asia/Taipei").toDate();
+
+  return {
+    title,
+    category,
+    authorName,
+    updatedAt,
+    thumbnailUrl,
+    numChar,
+    status,
+  };
 }
 
 export async function fetchBookContent(url: string): Promise<BookContent> {
@@ -39,25 +130,27 @@ export async function fetchBookContent(url: string): Promise<BookContent> {
   if (!suppportHostnames.includes(parsedUrl.hostname)) {
     throw new Error(`${parsedUrl.hostname} not in support list`);
   } else if (parsedUrl.hostname === "www.ptwxz.com") {
-    return fetchAndParsePtwxzContent(parsedUrl);
+    return fetchAndParsePtwxzBookContent(parsedUrl);
   } else {
     throw new Error("not implement");
   }
 }
 
-export async function fetchBookChunks(url: string): Promise<Array<BookChunk>> {
+export async function fetchBookChunkInfos(
+  url: string
+): Promise<Array<BookChunk>> {
   const parsedUrl = new URL(url);
   const suppportHostnames = getSupportHostnames();
   if (!suppportHostnames.includes(parsedUrl.hostname)) {
     throw new Error(`${parsedUrl.hostname} not in support list`);
   } else if (parsedUrl.hostname === "www.ptwxz.com") {
-    return fetchAndParsePtwxzList(parsedUrl);
+    return fetchAndParsePtwxzBookChunkInfos(parsedUrl);
   } else {
     throw new Error("not implement");
   }
 }
 
-async function fetchAndParsePtwxzList(
+async function fetchAndParsePtwxzBookChunkInfos(
   parsedUrl: URL
 ): Promise<Array<BookChunk>> {
   const res = await myFetchForHtml(parsedUrl.toString());
@@ -112,7 +205,9 @@ function parsePtwxzUrl(parsedUrl: URL): Pick<BookContent, "bookId" | "id"> {
   }
 }
 
-async function fetchAndParsePtwxzContent(parsedUrl: URL): Promise<BookContent> {
+async function fetchAndParsePtwxzBookContent(
+  parsedUrl: URL
+): Promise<BookContent> {
   const { id, bookId } = parsePtwxzUrl(parsedUrl);
   const res = await myFetchForHtml(parsedUrl.toString());
   const $ = cheerio.load(res.data);

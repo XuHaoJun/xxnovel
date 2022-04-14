@@ -4,8 +4,11 @@ import { AppProps } from "next/app";
 import { ThemeProvider } from "@mui/material/styles";
 import CssBaseline from "@mui/material/CssBaseline";
 import { CacheProvider, EmotionCache } from "@emotion/react";
-import theme from "../themes/defaultTheme";
-import createEmotionCache from "../utils/mui/createEmotionCache";
+
+import { Hydrate, QueryClient, QueryClientProvider } from "react-query";
+
+import theme from "../client/themes/defaultTheme";
+import createEmotionCache from "../client/utils/mui/createEmotionCache";
 
 // Client-side cache, shared for the whole session of the user in the browser.
 const clientSideEmotionCache = createEmotionCache();
@@ -16,6 +19,8 @@ interface MyAppProps extends AppProps {
 
 export default function MyApp(props: MyAppProps) {
   const { Component, emotionCache = clientSideEmotionCache, pageProps } = props;
+  const [queryClient] = React.useState(() => new QueryClient());
+
   return (
     <CacheProvider value={emotionCache}>
       <Head>
@@ -24,7 +29,11 @@ export default function MyApp(props: MyAppProps) {
       <ThemeProvider theme={theme}>
         {/* CssBaseline kickstart an elegant, consistent, and simple baseline to build upon. */}
         <CssBaseline />
-        <Component {...pageProps} />
+        <QueryClientProvider client={queryClient}>
+          <Hydrate state={pageProps.dehydratedState}>
+            <Component {...pageProps} />
+          </Hydrate>
+        </QueryClientProvider>
       </ThemeProvider>
     </CacheProvider>
   );

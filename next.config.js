@@ -1,14 +1,19 @@
+const withBundleAnalyzer = require("@next/bundle-analyzer")({
+  enabled: process.env.ANALYZE === "true",
+});
+const MomentTimezoneDataPlugin = require("moment-timezone-data-webpack-plugin");
+
 /** @type {import('next').NextConfig} */
-module.exports = {
-  reactStrictMode: true,
-  experimental: {
-    runtime: "nodejs",
-  },
-  typescript: {
-    // !! WARN !!
-    // Dangerously allow production builds to successfully complete even if
-    // your project has type errors.
-    // !! WARN !!
-    ignoreBuildErrors: true,
-  },
+module.exports = (phase, defaultConfig) => {
+  return withBundleAnalyzer({
+    ...defaultConfig,
+    webpack: (config) => {
+      config.plugins.push(
+        new MomentTimezoneDataPlugin({
+          matchCountries: "TW",
+        })
+      );
+      return config;
+    },
+  });
 };

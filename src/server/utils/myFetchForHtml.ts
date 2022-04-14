@@ -18,7 +18,7 @@ function getCharset($: CheerioAPI): string {
   return "utf-8";
 }
 
-async function convertToUtf8(data: Buffer): Promise<string> {
+function convertToUtf8(data: Buffer): string {
   const $ = cheerio.load(data);
   const charset = getCharset($);
   return iconv.decode(data, charset).toString();
@@ -37,7 +37,11 @@ export async function myFetchForHtml(
     headers: { "User-Agent": randomUa.getRandom() },
   });
   const { data } = res;
-  const toUtf8 = await convertToUtf8(data);
-  const rawHtml = await convertToZhTw(toUtf8);
-  return { ...res, data: rawHtml } as AxiosResponse<string>;
+
+  let htmlStr: string;
+  const toUtf8 = convertToUtf8(data);
+  const zhtwHtml = await convertToZhTw(toUtf8);
+  htmlStr = zhtwHtml;
+
+  return { ...res, data: htmlStr } as AxiosResponse<string>;
 }

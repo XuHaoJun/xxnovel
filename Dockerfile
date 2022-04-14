@@ -1,0 +1,56 @@
+ARG NODE_VERSION="16.14.2"
+ARG ALPINE_VERSION="3.14"
+
+
+
+#
+## Base Stage
+FROM node:${NODE_VERSION}-alpine${ALPINE_VERSION} AS base-stage
+WORKDIR /app/xxnovel
+RUN apk update && apk --no-cache upgrade musl && apk add --no-cache tzdata curl bash openssh git 
+
+
+# 
+## Dependencies Stage
+FROM base-stage AS dependencies-stage
+# COPY prepare.js .
+COPY package.json .
+COPY yarn.lock .
+# 只安裝 production 相關模組，並複製出來，準備給 Release Stage 使用
+RUN yarn install --frozen-lockfile --production
+RUN cp -R node_modules /production_node_modules
+# prod & dev 模組全部安裝
+RUN yarn install
+
+
+# 
+## Build Stage
+FROM dependencies-stage AS build-stage
+ENV NODE_ENV=production
+COPY package.json .
+COPY yarn.lock .
+COPY next-env.ts .
+COPY next.config.js .
+COPY tsconfig.json .
+COPY src src
+RUN npm run build
+
+
+# 
+## Release Stage
+FROM base-stage AS release-stage
+ENV NODE_ENV=production
+ENV TZ Asia/Taipei
+
+COPY package.json .
+
+# COPY public .
+
+COPY --from=dependencies-stage /production_node_modules node_modules
+COPY --from=build-stage /inu-sync-adapter/.next .next
+
+# COPY .env .
+
+EXPOSE 3000
+
+ENTRYPOINT ["npm", "start"]

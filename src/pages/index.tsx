@@ -1,17 +1,19 @@
 import * as React from "react";
 import errToJSON from "@stdlib/error-to-json";
 
-import type { NextPage } from "next";
+import type { GetStaticPaths, NextPage } from "next";
 import Container from "@mui/material/Container";
 import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
-import Link from "../components/Link";
+import Link from "../client/components/Link";
 
 import {
   fetchBookContent,
   BookContent,
-  fetchBookChunks,
-} from "../utils/fetchBookHelper";
+  fetchBookChunkInfos,
+} from "../server/utils/fetchBookHelper";
+import { QueryClient } from "react-query";
+import { getBook } from "../client/services/book";
 
 const Home: NextPage = () => {
   return (
@@ -36,9 +38,23 @@ const Home: NextPage = () => {
   );
 };
 
-export async function getServerSideProps(...args: any) {
+// export async function getStaticPaths(): GetStaticPaths {
+//   return {
+//     paths: [{}],
+//     fallback: true
+//   }
+// }
+
+// export async function getStaticProps() {
+//   const queryClient = new QueryClient();
+//   await queryClient.prefetchQuery(["books", bookdId], async () =>
+//     getBook(bookId)
+//   );
+// }
+
+export async function getServerSideProps() {
   try {
-    const list = await fetchBookChunks(`https://www.ptwxz.com/html/0/48`);
+    const list = await fetchBookChunkInfos(`https://www.ptwxz.com/html/0/48`);
     const fetchNovelResult = await fetchBookContent(
       `https://www.ptwxz.com/html/0/48/192727.html`
     );
