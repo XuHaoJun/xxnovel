@@ -1,7 +1,7 @@
 import * as React from "react";
 import { deepmerge } from "@mui/utils";
 import { ThemeProvider, useTheme, createTheme } from "@mui/material/styles";
-import CssBaseline from "@mui/material/CssBaseline";
+import CssBaseline2 from "@mui/material/CssBaseline";
 import { getDesignTokens, getThemedComponents } from "./brandingTheme";
 
 export default function BrandingProvider({
@@ -19,7 +19,7 @@ export default function BrandingProvider({
   }, [mode]);
   return (
     <ThemeProvider theme={theme}>
-      <CssBaseline />
+      <CssBaseline2 />
       {children}
     </ThemeProvider>
   );

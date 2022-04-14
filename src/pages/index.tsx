@@ -14,14 +14,13 @@ import {
   useBookChunk,
   useGoodBookInfos,
 } from "../client/queries/book";
-import AppHeader from "../client/layouts/AppHeader";
+import DefaultLayout from "../client/layouts/DefaultLayout";
 
 const Home: NextPage = (props: any) => {
   const { goodBookInfos } = useGoodBookInfos();
   console.log(goodBookInfos);
   return (
-    <>
-      <AppHeader />
+    <DefaultLayout>
       <Container maxWidth="lg">
         <Box
           sx={{
@@ -41,7 +40,7 @@ const Home: NextPage = (props: any) => {
           </Link>
         </Box>
       </Container>
-    </>
+    </DefaultLayout>
   );
 };
 

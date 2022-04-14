@@ -16,6 +16,7 @@ import {
   getThemedComponents,
   getMetaThemeColor,
 } from "./brandingTheme";
+import { useMediaQuery } from "@mui/material";
 
 interface MyThemeOptions {
   dense: boolean;
@@ -112,6 +113,7 @@ if (process?.env.NODE_ENV !== "production") {
 }
 
 let createTheme: (options?: ThemeOptions, ...args: object[]) => Theme;
+createTheme = createLegacyModeTheme;
 if (process?.env.REACT_STRICT_MODE) {
   createTheme = createStrictModeTheme;
 } else {
@@ -120,13 +122,29 @@ if (process?.env.REACT_STRICT_MODE) {
 
 interface ThemeAction {
   type: "CHANGE";
-  payload: MyThemeOptions;
+  payload: Partial<MyThemeOptions>;
+}
+
+export function getCookie(name: string): string | undefined {
+  if (typeof document === "undefined") {
+    throw new Error(
+      "getCookie() is not supported on the server. Fallback to a different value when rendering on the server."
+    );
+  }
+
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) {
+    return parts[1].split(";").shift();
+  }
+
+  return undefined;
 }
 
 export function DefaultThemeProvider(props: any) {
   const { children } = props;
-  // const prefersDarkMode = useMediaQuery("(prefers-color-scheme: dark)");
-  const preferredMode = "light";
+  const prefersDarkMode = useMediaQuery("(prefers-color-scheme: dark)");
+  const preferredMode = prefersDarkMode ? "dark" : "light";
 
   const [themeOptions, dispatch] = React.useReducer(
     (state: MyThemeOptions, action: ThemeAction) => {
@@ -148,9 +166,9 @@ export function DefaultThemeProvider(props: any) {
   const { dense, direction, paletteColors, paletteMode, spacing } =
     themeOptions;
 
-  // useEnhancedEffect(() => {
-  //   document.body.dir = direction;
-  // }, [direction]);
+  useEnhancedEffect(() => {
+    document.body.dir = direction;
+  }, [direction]);
 
   React.useEffect(() => {
     const metas = document.querySelectorAll('meta[name="theme-color"]');
@@ -158,6 +176,25 @@ export function DefaultThemeProvider(props: any) {
       meta.setAttribute("content", getMetaThemeColor(paletteMode));
     });
   }, [paletteMode]);
+
+  React.useEffect(() => {
+    if (typeof window !== "undefined") {
+      const nextPaletteColors = JSON.parse(
+        getCookie("paletteColors") || "null"
+      );
+      const nextPaletteMode = (getCookie("paletteMode") || preferredMode) as
+        | "dark"
+        | "light";
+
+      dispatch({
+        type: "CHANGE",
+        payload: {
+          paletteColors: nextPaletteColors,
+          paletteMode: nextPaletteMode,
+        },
+      });
+    }
+  }, [preferredMode]);
 
   const theme = React.useMemo(() => {
     const brandingDesignTokens = getDesignTokens(paletteMode);
@@ -198,15 +235,15 @@ export function DefaultThemeProvider(props: any) {
     return nextTheme;
   }, [dense, direction, paletteColors, paletteMode, spacing]);
 
-  useEnhancedEffect(() => {
-    if (theme.palette.mode === "dark") {
-      document.body.classList.remove("mode-light");
-      document.body.classList.add("mode-dark");
-    } else {
-      document.body.classList.remove("mode-dark");
-      document.body.classList.add("mode-light");
-    }
-  }, [theme.palette.mode]);
+  // useEnhancedEffect(() => {
+  //   if (theme.palette.mode === "dark") {
+  //     document.body.classList.remove("mode-light");
+  //     document.body.classList.add("mode-dark");
+  //   } else {
+  //     document.body.classList.remove("mode-dark");
+  //     document.body.classList.add("mode-light");
+  //   }
+  // }, [theme.palette.mode]);
 
   return (
     <MuiThemeProvider theme={theme}>

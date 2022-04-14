@@ -25,15 +25,15 @@ export default function MyApp(props: MyAppProps) {
       <Head>
         <meta name="viewport" content="initial-scale=1, width=device-width" />
       </Head>
-      <DefaultThemeProvider>
-        <BrandingProvider>
-          <QueryClientProvider client={queryClient}>
-            <Hydrate state={pageProps.dehydratedState}>
+      <QueryClientProvider client={queryClient}>
+        <Hydrate state={pageProps.dehydratedState}>
+          <DefaultThemeProvider>
+            <BrandingProvider>
               <Component {...pageProps} />
-            </Hydrate>
-          </QueryClientProvider>
-        </BrandingProvider>
-      </DefaultThemeProvider>
+            </BrandingProvider>
+          </DefaultThemeProvider>
+        </Hydrate>
+      </QueryClientProvider>
     </CacheProvider>
   );
 }

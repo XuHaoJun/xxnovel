@@ -17,6 +17,9 @@ async function bootstrap() {
   });
   await app.listen(PORT);
 
+  // for vscode debugger
+  console.log(`started server on 0.0.0.0:${PORT}, url: http://localhost:${PORT}`)
+
   if (module.hot) {
     module.hot.accept();
     module.hot.dispose(() => app.close());
