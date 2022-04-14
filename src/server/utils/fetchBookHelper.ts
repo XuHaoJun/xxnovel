@@ -9,24 +9,19 @@ import { ElementType } from "htmlparser2";
 import path from "path";
 
 export interface BookContent {
-  id?: string;
-  bookId?: string;
   title?: string;
   lines?: Array<string>;
   url?: string;
 }
 
 export interface BookChunk {
-  id?: string;
   chapterName?: string;
   sectionName?: string;
-  contentId?: string;
   url?: string;
   createdAt?: Date;
 }
 
 export interface Book {
-  id?: string;
   title?: string;
   authorName?: string;
   chunks?: Array<BookChunk>;
@@ -170,13 +165,9 @@ async function fetchAndParsePtwxzBookChunkInfos(
         const sectionName = $(a).text();
         if (_.isString(href) && !_.isEmpty(href)) {
           const url = path.join(parsedUrl.toString(), href);
-          const id = url;
-          const contentId = id;
           const chunk: BookChunk = {
-            id,
             chapterName,
             sectionName,
-            contentId,
             url,
           };
           chunks.push(chunk);
@@ -188,27 +179,27 @@ async function fetchAndParsePtwxzBookChunkInfos(
   return chunks;
 }
 
-function parsePtwxzUrl(parsedUrl: URL): Pick<BookContent, "bookId" | "id"> {
-  const parsedPath = path.parse(parsedUrl.pathname);
-  if (parsedPath.ext === ".html") {
-    const bookId = `${parsedUrl.protocol}//${parsedUrl.hostname}${parsedPath.dir}`;
-    const id = parsedUrl.toString();
-    return {
-      id,
-      bookId,
-    };
-  } else {
-    const bookId = parsedUrl.toString();
-    return {
-      bookId,
-    };
-  }
-}
+// function parsePtwxzUrl(parsedUrl: URL): Pick<BookContent, "bookId" | "id"> {
+//   const parsedPath = path.parse(parsedUrl.pathname);
+//   if (parsedPath.ext === ".html") {
+//     const bookId = `${parsedUrl.protocol}//${parsedUrl.hostname}${parsedPath.dir}`;
+//     const id = parsedUrl.toString();
+//     return {
+//       id,
+//       bookId,
+//     };
+//   } else {
+//     const bookId = parsedUrl.toString();
+//     return {
+//       bookId,
+//     };
+//   }
+// }
 
 async function fetchAndParsePtwxzBookContent(
   parsedUrl: URL
 ): Promise<BookContent> {
-  const { id, bookId } = parsePtwxzUrl(parsedUrl);
+  // const { id, bookId } = parsePtwxzUrl(parsedUrl);
   const res = await myFetchForHtml(parsedUrl.toString());
   const $ = cheerio.load(res.data);
   const eles = $("table").nextUntil("center").toArray();
@@ -220,8 +211,8 @@ async function fetchAndParsePtwxzBookContent(
     }
   }
   return {
-    id,
-    bookId,
+    // id,
+    // bookId,
     title: $("h1").text(),
     lines,
     url: parsedUrl.toString(),
@@ -231,3 +222,7 @@ async function fetchAndParsePtwxzBookContent(
 export function getSupportHostnames(): Array<string> {
   return ["www.ptwxz.com"];
 }
+
+// (async () => {
+//   const foo = await fetchAndParsePtwxzBookContent();
+// })();
