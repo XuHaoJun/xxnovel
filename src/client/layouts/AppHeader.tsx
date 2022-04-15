@@ -1,5 +1,5 @@
 import * as React from "react";
-import { styled, alpha } from "@mui/material/styles";
+import { useTheme, styled, alpha } from "@mui/material/styles";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import Box from "@mui/material/Box";
 import Stack from "@mui/material/Stack";
@@ -10,6 +10,7 @@ import GitHubIcon from "@mui/icons-material/GitHub";
 
 import { useChangeTheme } from "../themes/DefaultThemeProvider";
 import ThemeModeToggle from "../components/header/ThemeModeToggle";
+import { setCookies } from "cookies-next";
 
 const Header = styled("header")(({ theme }) => ({
   position: "sticky",
@@ -30,20 +31,26 @@ const Header = styled("header")(({ theme }) => ({
 
 export default function AppHeader() {
   const changeTheme = useChangeTheme();
+  const theme = useTheme();
+
   const [mode, setMode] = React.useState<string | null>(null);
   const prefersDarkMode = useMediaQuery("(prefers-color-scheme: dark)");
 
   React.useEffect(() => {
     const initialMode = "system";
     setMode(initialMode);
+    if (prefersDarkMode && theme.palette.mode !== "dark" && mode === "system") {
+      const nextPaletteMode = "dark";
+      changeTheme({ paletteMode: nextPaletteMode });
+    }
   }, []);
 
   const handleChangeThemeMode = (checked: boolean) => {
     const paletteMode = checked ? "dark" : "light";
     setMode(paletteMode);
 
-    document.cookie = `paletteMode=${paletteMode};path=/;max-age=31536000`;
-    console.log("???");
+    setCookies("paletteMode", paletteMode, { path: "/", maxAge: 31536000 });
+
     changeTheme({ paletteMode });
   };
 
@@ -53,7 +60,7 @@ export default function AppHeader() {
         Title
         {mode !== null ? (
           <ThemeModeToggle
-            checked={mode === "system" ? prefersDarkMode : mode === "dark"}
+            checked={theme.palette.mode === "dark"}
             onChange={handleChangeThemeMode}
           />
         ) : null}

@@ -17,6 +17,8 @@ import {
   getMetaThemeColor,
 } from "./brandingTheme";
 import { useMediaQuery } from "@mui/material";
+import { getCookie } from "cookies-next";
+import _ from "lodash";
 
 interface MyThemeOptions {
   dense: boolean;
@@ -125,26 +127,37 @@ interface ThemeAction {
   payload: Partial<MyThemeOptions>;
 }
 
-export function getCookie(name: string): string | undefined {
-  if (typeof document === "undefined") {
-    throw new Error(
-      "getCookie() is not supported on the server. Fallback to a different value when rendering on the server."
-    );
-  }
-
-  const value = `; ${document.cookie}`;
-  const parts = value.split(`; ${name}=`);
-  if (parts.length === 2) {
-    return parts[1].split(";").shift();
-  }
-
-  return undefined;
-}
-
 export function DefaultThemeProvider(props: any) {
   const { children } = props;
   const prefersDarkMode = useMediaQuery("(prefers-color-scheme: dark)");
-  const preferredMode = prefersDarkMode ? "dark" : "light";
+
+  const getThemeOptionsFromCookie = React.useCallback(() => {
+    const cookieColors = getCookie("paletteColors");
+    let nextPaletteColors: Record<string, any> | undefined;
+    if (_.isString(cookieColors)) {
+      nextPaletteColors = JSON.parse(cookieColors);
+    } else {
+      nextPaletteColors = {};
+    }
+    let nextPaletteMode: "dark" | "light";
+    const cookiePMode = getCookie("paletteMode");
+    if (_.isString(cookiePMode) && ["dark", "light"].includes(cookiePMode)) {
+      nextPaletteMode = cookiePMode as "dark" | "light";
+    } else {
+      nextPaletteMode = prefersDarkMode ? "dark" : "light";
+    }
+    return {
+      paletteColors: nextPaletteColors,
+      paletteMode: nextPaletteMode,
+    };
+  }, [getCookie]);
+
+  let preferredMode: "dark" | "light";
+  if (typeof window === "undefined") {
+    preferredMode = getThemeOptionsFromCookie().paletteMode;
+  } else {
+    preferredMode = prefersDarkMode ? "dark" : "light";
+  }
 
   const [themeOptions, dispatch] = React.useReducer(
     (state: MyThemeOptions, action: ThemeAction) => {
@@ -178,27 +191,21 @@ export function DefaultThemeProvider(props: any) {
   }, [paletteMode]);
 
   React.useEffect(() => {
-    if (typeof window !== "undefined") {
-      const nextPaletteColors = JSON.parse(
-        getCookie("paletteColors") || "null"
-      );
-      const nextPaletteMode = (getCookie("paletteMode") || preferredMode) as
-        | "dark"
-        | "light";
-
-      dispatch({
-        type: "CHANGE",
-        payload: {
-          paletteColors: nextPaletteColors,
-          paletteMode: nextPaletteMode,
-        },
-      });
-    }
+    const { paletteMode: nextPaletteMode, paletteColors: nextPaletteColors } =
+      getThemeOptionsFromCookie();
+    dispatch({
+      type: "CHANGE",
+      payload: {
+        paletteColors: nextPaletteColors,
+        paletteMode: nextPaletteMode,
+      },
+    });
   }, [preferredMode]);
 
   const theme = React.useMemo(() => {
     const brandingDesignTokens = getDesignTokens(paletteMode);
     const nextPalette = deepmerge(brandingDesignTokens.palette, paletteColors);
+
     let nextTheme = createTheme(
       {
         direction,
@@ -233,7 +240,14 @@ export function DefaultThemeProvider(props: any) {
     nextTheme = deepmerge(nextTheme, getThemedComponents(nextTheme));
 
     return nextTheme;
-  }, [dense, direction, paletteColors, paletteMode, spacing]);
+  }, [
+    dense,
+    direction,
+    paletteColors,
+    paletteMode,
+    spacing,
+    getThemeOptionsFromCookie,
+  ]);
 
   // useEnhancedEffect(() => {
   //   if (theme.palette.mode === "dark") {

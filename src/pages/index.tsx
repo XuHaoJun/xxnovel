@@ -15,6 +15,7 @@ import {
   useGoodBookInfos,
 } from "../client/queries/book";
 import DefaultLayout from "../client/layouts/DefaultLayout";
+import { getCookie } from "cookies-next";
 
 const Home: NextPage = (props: any) => {
   const { goodBookInfos } = useGoodBookInfos();
@@ -46,6 +47,11 @@ const Home: NextPage = (props: any) => {
 
 export const getStaticProps: GetStaticProps = async () => {
   const queryClient = new QueryClient();
+  queryClient.setDefaultOptions({
+    queries: {
+      staleTime: 1000 * 60,
+    },
+  });
 
   await queryClient.prefetchQuery(getGoodBookInfosQueryKey(), getGoodBookInfos);
 
