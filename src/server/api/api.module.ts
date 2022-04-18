@@ -1,19 +1,18 @@
 import { Module } from "@nestjs/common";
 import { RouterModule } from "@nestjs/core";
 
-import { BookModule } from "./book/book.module";
-import { CommentModule } from "./comment/comment.module";
+import { BooksModule } from "./books/books.module";
 
 @Module({
   imports: [
-    BookModule,
+    BooksModule,
     RouterModule.register([
       {
         path: "api",
         children: [
           {
             path: "books",
-            module: BookModule,
+            module: BooksModule,
           },
         ],
       },

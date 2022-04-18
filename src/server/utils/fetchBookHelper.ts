@@ -8,23 +8,19 @@ import { myFetchForHtml } from "./myFetchForHtml";
 import { ElementType } from "htmlparser2";
 import path from "path";
 
-export interface BookContent {
-  title?: string;
-  lines?: Array<string>;
-  url?: string;
-}
-
 export interface BookChunk {
   chapterName?: string;
   sectionName?: string;
   url?: string;
   createdAt?: Date;
+  lines?: Array<string>;
 }
 
 export interface Book {
   title?: string;
   authorName?: string;
-  chunks?: Array<BookChunk>;
+  chunks?: Array<BookChunk> | null;
+  numBookChunks?: number;
   url?: string;
   createdAt?: Date;
   updatedAt?: Date;
@@ -33,6 +29,9 @@ export interface Book {
   category?: string;
   numChar?: number;
   thumbnailUrl?: string;
+  descriptionLines?: Array<string>;
+  crawleSource?: string;
+  bookChunkInfosUrl?: string;
 }
 
 export async function fetchGoodBookInfoUrls(
@@ -108,6 +107,25 @@ export async function fetchBookInfo(url: string): Promise<Book | null> {
     .trim();
   const updatedAt = moment.tz(updatedAt0, "Asia/Taipei").toDate();
 
+  const descriptionEle = $(
+    "#content > table > tbody > tr:nth-child(4) > td > table > tbody > tr > td:nth-child(2) > div > .hottext"
+  );
+  const descriptionLines: Array<string> = [];
+  for (const x of descriptionEle.nextAll().toArray()) {
+    if (x.name === "br" && x.next?.type === ElementType.Text) {
+      const textNode = x.next as Text;
+      const t = textNode.nodeValue?.trim();
+      if (!_.isEmpty(t)) {
+        descriptionLines.push(t);
+      }
+    }
+  }
+
+  const bookChunkInfosEle = $(
+    "#content > table > tbody > tr:nth-child(4) > td > table > tbody > tr > td:nth-child(1) > a"
+  );
+  const bookChunkInfosUrl = bookChunkInfosEle.attr("href");
+
   return {
     title,
     category,
@@ -116,10 +134,14 @@ export async function fetchBookInfo(url: string): Promise<Book | null> {
     thumbnailUrl,
     numChar,
     status,
+    descriptionLines,
+    url,
+    crawleSource: url,
+    bookChunkInfosUrl,
   };
 }
 
-export async function fetchBookContent(url: string): Promise<BookContent> {
+export async function fetchBookContent(url: string): Promise<BookChunk> {
   const parsedUrl = new URL(url);
   const suppportHostnames = getSupportHostnames();
   if (!suppportHostnames.includes(parsedUrl.hostname)) {
@@ -198,7 +220,7 @@ async function fetchAndParsePtwxzBookChunkInfos(
 
 async function fetchAndParsePtwxzBookContent(
   parsedUrl: URL
-): Promise<BookContent> {
+): Promise<BookChunk> {
   // const { id, bookId } = parsePtwxzUrl(parsedUrl);
   const res = await myFetchForHtml(parsedUrl.toString());
   const $ = cheerio.load(res.data);
@@ -213,7 +235,7 @@ async function fetchAndParsePtwxzBookContent(
   return {
     // id,
     // bookId,
-    title: $("h1").text(),
+    sectionName: $("h1").text(),
     lines,
     url: parsedUrl.toString(),
   };

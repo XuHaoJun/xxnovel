@@ -5,6 +5,7 @@ import { RenderModule } from "nest-next";
 import { NODE_ENV } from "../shared/constants/env";
 import { PagesModule } from "./pages/pages.module";
 import { ApiModule } from "./api/api.module";
+import { InitialModule } from "./initial/initial.module";
 
 declare const module: any;
 
@@ -25,7 +26,7 @@ export class AppModule {
 
     return {
       module: AppModule,
-      imports: [ApiModule],
+      imports: [ApiModule, InitialModule],
       controllers: [],
       providers: [],
     };
