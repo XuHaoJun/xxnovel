@@ -15,11 +15,10 @@ import {
   useGoodBookInfos,
 } from "../client/queries/book";
 import DefaultLayout from "../client/layouts/DefaultLayout";
-import { getCookie } from "cookies-next";
 
 const Home: NextPage = (props: any) => {
   const { goodBookInfos } = useGoodBookInfos();
-  console.log(goodBookInfos);
+  console.log('goodBookInfos', goodBookInfos);
   return (
     <DefaultLayout>
       <Container maxWidth="lg">

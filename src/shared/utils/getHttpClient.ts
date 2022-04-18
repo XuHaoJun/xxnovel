@@ -45,7 +45,7 @@ export function createHttpClient(
   configs?: AxiosRequestConfig,
   _opts?: CreateHttpClientOptions
 ): AxiosInstance {
-  const defaultOptions = { isApi: true, apiVersion: "", apiPrefix: "/api" };
+  const defaultOptions = { isApi: true, apiVersion: "v1", apiPrefix: "/api" };
   const opts = _.defaults(_opts, defaultOptions);
 
   const bUrlStr = getBaseURL();

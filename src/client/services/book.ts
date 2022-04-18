@@ -7,7 +7,7 @@ export async function getBook(bookId: string): Promise<any> {
 }
 
 export async function getGoodBookInfos(): Promise<any> {
-  return [];
+  // return [];
   return (await hc.get(`books/goods`)).data;
 }
 

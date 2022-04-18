@@ -7,12 +7,14 @@ ARG ALPINE_VERSION="3.15"
 ## Base Stage
 FROM node:${NODE_VERSION}-alpine${ALPINE_VERSION} AS base-stage
 WORKDIR /app/xxnovel
-RUN apk update && apk --no-cache upgrade musl && apk add --no-cache tzdata curl bash openssh git 
+RUN apk update && apk --no-cache upgrade musl && apk add --no-cache tzdata curl bash openssh git
 
 
 # 
 ## Dependencies Stage
 FROM base-stage AS dependencies-stage
+# for node-gyp build opencc package
+RUN apk add --no-cache build-base python2 python3
 # COPY prepare.js .
 COPY package.json .
 COPY yarn.lock .
@@ -29,11 +31,11 @@ FROM dependencies-stage AS build-stage
 ENV NODE_ENV=production
 COPY package.json .
 COPY yarn.lock .
-COPY next-env.ts .
+COPY next-env.d.ts .
 COPY next.config.js .
 COPY tsconfig.json .
 COPY src src
-RUN npm run build
+RUN npm run build:next
 
 
 # 
@@ -43,14 +45,17 @@ ENV NODE_ENV=production
 ENV TZ Asia/Taipei
 
 COPY package.json .
+COPY next-env.d.ts .
+COPY next.config.js .
 
 # COPY public .
 
 COPY --from=dependencies-stage /production_node_modules node_modules
-COPY --from=build-stage /inu-sync-adapter/.next .next
+COPY --from=build-stage /app/xxnovel/.next .next
 
-# COPY .env .
+COPY .env .
 
-EXPOSE 3000
+# EXPOSE 3000
 
-ENTRYPOINT ["npm", "start"]
+CMD []
+ENTRYPOINT ["npm", "run", "start:next"]

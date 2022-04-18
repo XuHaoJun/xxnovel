@@ -5,6 +5,18 @@
       "name": "Next.js: debug server-side",
       "type": "node-terminal",
       "request": "launch",
+      "command": "npm run dev:next"
+    },
+    {
+      "name": "Nest.js: debug server-side",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "npm run dev:nest"
+    },
+    {
+      "name": "Nest.js & Next.js: debug server-side",
+      "type": "node-terminal",
+      "request": "launch",
       "command": "npm run start:dev"
     },
     {

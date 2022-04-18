@@ -7,12 +7,14 @@ ARG ALPINE_VERSION="3.15"
 ## Base Stage
 FROM node:${NODE_VERSION}-alpine${ALPINE_VERSION} AS base-stage
 WORKDIR /app/xxnovel
-RUN apk update && apk --no-cache upgrade musl && apk add --no-cache tzdata curl bash openssh git 
+RUN apk update && apk --no-cache upgrade musl && apk add --no-cache tzdata curl bash openssh git
 
 
 # 
 ## Dependencies Stage
 FROM base-stage AS dependencies-stage
+# for node-gyp build opencc package
+RUN apk add --no-cache build-base python2 python3
 # COPY prepare.js .
 COPY package.json .
 COPY yarn.lock .
@@ -29,11 +31,12 @@ FROM dependencies-stage AS build-stage
 ENV NODE_ENV=production
 COPY package.json .
 COPY yarn.lock .
-COPY next-env.ts .
-COPY next.config.js .
+# COPY next-env.d.ts .
+# COPY next.config.js .
 COPY tsconfig.json .
+COPY tsconfig.server.json .
 COPY src src
-RUN npm run build
+RUN npm run build:nest
 
 
 # 
@@ -43,14 +46,15 @@ ENV NODE_ENV=production
 ENV TZ Asia/Taipei
 
 COPY package.json .
+COPY nest-cli.json .
 
 # COPY public .
 
 COPY --from=dependencies-stage /production_node_modules node_modules
-COPY --from=build-stage /inu-sync-adapter/.next .next
+COPY --from=build-stage /app/xxnovel/dist dist
 
-# COPY .env .
+COPY .env .
 
-EXPOSE 3000
+# EXPOSE 3001
 
-ENTRYPOINT ["npm", "start"]
+ENTRYPOINT ["npm", "run", "start:nest"]
