@@ -248,6 +248,11 @@
     minimatch "^3.0.4"
     strip-json-comments "^3.1.1"
 
+"@hokify/axios-rate-limit@^2.0.5":
+  version "2.0.5"
+  resolved "https://registry.yarnpkg.com/@hokify/axios-rate-limit/-/axios-rate-limit-2.0.5.tgz#5480f886438b00cc2f96dc293ef06c5b08a2db5c"
+  integrity sha512-lVfXaO7GINqP5QikcIHvmdbbNpJobScb9jA4VMrzYhUMi6nHEtewG1kG8Gt+O/3filUPzQ6rOJRJ/yneM9vf1g==
+
 "@humanwhocodes/config-array@^0.9.2":
   version "0.9.5"
   resolved "https://registry.npmjs.org/@humanwhocodes/config-array/-/config-array-0.9.5.tgz"
@@ -2063,11 +2068,6 @@ axe-core@^4.3.5:
   resolved "https://registry.npmjs.org/axe-core/-/axe-core-4.4.1.tgz"
   integrity sha512-gd1kmb21kwNuWr6BQz8fv6GNECPBnUasepcoLbekws23NVBLODdsClRZ+bQ8+9Uomf3Sm3+Vwn0oYG9NvwnJCw==
 
-axios-rate-limit@^1.3.0:
-  version "1.3.0"
-  resolved "https://registry.npmjs.org/axios-rate-limit/-/axios-rate-limit-1.3.0.tgz"
-  integrity sha512-cKR5wTbU/CeeyF1xVl5hl6FlYsmzDVqxlN4rGtfO5x7J83UxKDckudsW0yW21/ZJRcO0Qrfm3fUFbhEbWTLayw==
-
 axios@0.26.1, axios@^0.26.1:
   version "0.26.1"
   resolved "https://registry.npmjs.org/axios/-/axios-0.26.1.tgz"
@@ -3647,6 +3647,11 @@ ignore@^5.2.0:
   version "5.2.0"
   resolved "https://registry.npmjs.org/ignore/-/ignore-5.2.0.tgz"
   integrity sha512-CmxgYGiEPCLhfLnpPp1MoRmifwEIOgjcHXxOBjv7mY96c+eWScsOP9c112ZyLdWHi0FxHjI+4uVhKYp/gcdRmQ==
+
+immer@^9.0.12:
+  version "9.0.12"
+  resolved "https://registry.yarnpkg.com/immer/-/immer-9.0.12.tgz#2d33ddf3ee1d247deab9d707ca472c8c942a0f20"
+  integrity sha512-lk7UNmSbAukB5B6dh9fnh5D0bJTOFKxVg2cyJWTYrWRfhLrLMBquONcUs3aFq507hNoIZEDDh8lb8UtOizSMhA==
 
 import-fresh@^3.0.0, import-fresh@^3.1.0, import-fresh@^3.2.1:
   version "3.3.0"

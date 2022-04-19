@@ -54,7 +54,7 @@ export async function fetchGoodBookInfoUrls(
   return founds;
 }
 
-export async function fetchBookInfo(url: string): Promise<Book | null> {
+export async function fetchBookInfo(url: string): Promise<Book> {
   const parsedUrl = new URL(url);
   const res = await myFetchForHtml(url);
 

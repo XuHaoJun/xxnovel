@@ -1,7 +1,6 @@
 import { Controller, Get, Query, VERSION_NEUTRAL } from "@nestjs/common";
 import _ from "lodash";
 
-import { fetchBookInfo } from "../../utils/fetchBookHelper";
 import { BooksService } from "./books.service";
 
 @Controller({ version: ["1", VERSION_NEUTRAL] })
@@ -23,13 +22,12 @@ export class BooksControllerV1 {
     return ["a"];
   }
 
-  @Get("_/crawle")
+  @Get("_/crawle/preview")
   public async crawleOne(@Query("src") src: string) {
-    const foo = await fetchBookInfo(src);
-    return foo;
+    return this.booksService.crawleOne(src);
   }
 
-  @Get("_/crawle/random")
+  @Get("_/crawle/preview/random")
   public async crawleOneRandom() {
     return this.booksService.crawleOneRandom();
   }
