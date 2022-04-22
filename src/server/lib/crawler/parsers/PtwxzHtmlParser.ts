@@ -4,7 +4,7 @@ import { ElementType } from "htmlparser2";
 import type { Text } from "domhandler";
 import "moment-timezone";
 import moment from "moment";
-import { IBook, IBookChunk } from "../interfaces/Book";
+import { IBook, IBookChunk } from "../interfaces/book";
 import path from "path";
 
 export class PtwxzCheerioParser {
@@ -74,7 +74,16 @@ export class PtwxzCheerioParser {
     const bookChunkInfosEle = $(
       "#content > table > tbody > tr:nth-child(4) > td > table > tbody > tr > td:nth-child(1) > a"
     );
-    const bookChunkInfosUrl = bookChunkInfosEle.attr("href");
+    const bookChunkInfosParsedUrl = new URL(parsedUrl.toString());
+    let bookChunkInfosUrl: string;
+    try {
+      bookChunkInfosUrl = new URL(
+        bookChunkInfosEle.attr("href") || ""
+      ).toString();
+    } catch (err: any) {
+      bookChunkInfosParsedUrl.pathname = bookChunkInfosEle.attr("href") || "";
+      bookChunkInfosUrl = bookChunkInfosParsedUrl.toString();
+    }
 
     return {
       title,
@@ -123,7 +132,9 @@ export class PtwxzCheerioParser {
           const href = a.attribs.href;
           const sectionName = $(a).text();
           if (_.isString(href) && !_.isEmpty(href)) {
-            const url = path.join(parsedUrl.toString(), href);
+            const u = new URL(parsedUrl.toString());
+            u.pathname = path.join(u.pathname, href);
+            const url = u.toString();
             const chunk: IBookChunk = {
               chapterName,
               sectionName,
@@ -149,7 +160,7 @@ export class PtwxzCheerioParser {
     }
     return {
       sectionName: $("h1").text(),
-      lines,
+      contentLines: lines,
       url: parsedUrl.toString(),
     };
   }

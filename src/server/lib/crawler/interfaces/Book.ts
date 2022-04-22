@@ -3,13 +3,14 @@ export interface IBookChunk {
   sectionName?: string;
   url?: string;
   createdAt?: Date;
-  lines?: Array<string>;
+  importedAt?: Date;
+  contentLines?: Array<string>;
 }
 
 export interface IBook {
   title?: string;
   authorName?: string;
-  chunks?: Array<IBookChunk> | null;
+  chunks?: Array<IBookChunk>;
   numBookChunks?: number;
   url?: string;
   createdAt?: Date;

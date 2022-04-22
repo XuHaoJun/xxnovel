@@ -2,7 +2,7 @@ import { OpenCC } from "opencc";
 
 let converter: OpenCC;
 
-function getConverter(): OpenCC {
+export function getS2TConverter(): OpenCC {
   if (converter) {
     return converter;
   } else {
@@ -12,5 +12,5 @@ function getConverter(): OpenCC {
 }
 
 export default async function convertToZhTw(data: string): Promise<string> {
-  return getConverter().convertPromise(data);
+  return getS2TConverter().convertPromise(data);
 }

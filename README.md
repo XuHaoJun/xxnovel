@@ -14,7 +14,7 @@ nextjs
 npm run dev:next
 ```
 
-## heroku deploy
+## heroku depoly
 
 heroku init
 
@@ -32,7 +32,7 @@ heroku container:release web --app yourAppName
 
 build & push & release next server
 
-```
+```shell
 API_PROXY=http://yourNest.herokuapp.com
 ```
 

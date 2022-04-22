@@ -2,36 +2,52 @@ import fsPromise from "fs/promises";
 
 import { Injectable } from "@nestjs/common";
 import { ElasticsearchService as NestElasticsearchService } from "@nestjs/elasticsearch";
+import { INDICES_PREFIXS } from "../constant";
+import { BookModel } from "../models/book.model";
+import { BookChunkModel } from "../models/bookChunk.model";
 
-// const BASE_COMPONENT_INDEX = "base_component_index";
 const BOOKINFO_INDEX_TEMPLATGE = "bookinfo_template";
-// const BOOKCHUNK_INDEX_TEMPLATGE = "bookchunk_index_template";
 
 @Injectable()
 export class ElasticsearchUsecase {
-  constructor(private readonly esClient: NestElasticsearchService) {}
+  public readonly book: BookModel;
+  public readonly bookChunk: BookChunkModel;
+
+  constructor(private readonly esClient: NestElasticsearchService) {
+    this.book = new BookModel(esClient);
+    this.bookChunk = new BookChunkModel(esClient);
+  }
 
   public async initIndices() {
-    const bookinfoTemplate = this.getBookInfoTemplate();
-    const indexName = "bookinfo-000001";
-    const isExists = await this.esClient.indices.exists({ index: indexName });
-    if (!isExists) {
-      await this.esClient.indices.create({
-        index: indexName,
-        body: bookinfoTemplate.template,
-      });
-      await this.esClient.indices.putAlias({
-        index: indexName,
-        name: "bookinfo-write",
-      });
+    const idxTempMapping: Record<string, any> = {
+      [INDICES_PREFIXS.BookInfo]: this.getBookInfoIndexTemplate(),
+      [INDICES_PREFIXS.BookChunk]: this.getBookChunkIndexTemplate(),
+    };
+    for (const idxPrefix of Object.values(INDICES_PREFIXS)) {
+      const idxTemplate = idxTempMapping[idxPrefix];
+      const indexName = `${idxPrefix}000001`;
+      const isExists = (
+        await this.esClient.indices.exists({ index: indexName })
+      ).body;
+      if (!isExists) {
+        await this.esClient.indices.create({
+          index: indexName,
+          body: idxTemplate.template,
+        });
+        await this.esClient.indices.putAlias({
+          index: indexName,
+          name: `${idxPrefix}write`,
+        });
+      }
     }
   }
 
   // elasticsearch cloud service(like bonsai) can't use index template
+  // deprecate
   public async initTemplates() {
     const body = {
-      index_patterns: ["bookinfo-*"],
-      template: this.getBookInfoTemplate(),
+      index_patterns: [`${INDICES_PREFIXS.BookInfo}*`],
+      template: this.getBookInfoIndexTemplate(),
     };
     console.log(`${BOOKINFO_INDEX_TEMPLATGE} putIndexTemplate:`);
     console.log(JSON.stringify(body, null, 2));
@@ -41,7 +57,90 @@ export class ElasticsearchUsecase {
     });
   }
 
-  private getBookInfoTemplate() {
+  private getBookChunkIndexTemplate() {
+    const baseComponentIndex = this.getBaseCompoentIndex();
+    const bookChunkProperties = {
+      bookIndex: {
+        type: "keyword",
+      },
+      bookId: {
+        type: "keyword",
+      },
+      bookInfo: {
+        properties: {
+          title: {
+            type: "text",
+            analyzer: "text_analyzer",
+          },
+          authorName: {
+            type: "text",
+            analyzer: "text_analyzer",
+          },
+          description: {
+            type: "text",
+            analyzer: "text_analyzer",
+          },
+        },
+      },
+      personNames: {
+        type: "keyword",
+      },
+      personCounts: {
+        type: "nested",
+        properties: {
+          tok: {
+            type: "keyword",
+          },
+          count: {
+            type: "integer",
+          },
+        },
+      },
+      content: {
+        type: "text",
+        analyzer: "text_analyzer",
+      },
+      chapterName: {
+        type: "text",
+        analyzer: "text_analyzer",
+      },
+      sectionName: {
+        type: "text",
+        analyzer: "text_analyzer",
+      },
+      url: {
+        type: "keyword",
+      },
+      importedAt: {
+        type: "date",
+      },
+      raw: {
+        properties: {
+          chapterName: {
+            type: "keyword",
+          },
+          sectionName: {
+            type: "keyword",
+          },
+          contentLines: {
+            type: "keyword",
+          },
+        },
+      },
+    };
+    return {
+      index_patterns: [`${INDICES_PREFIXS.BookChunk}*`],
+      template: {
+        ...baseComponentIndex.template,
+        mappings: {
+          ...baseComponentIndex.template.mappings,
+          properties: bookChunkProperties,
+        },
+      },
+    };
+  }
+
+  private getBookInfoIndexTemplate() {
     const baseComponentIndex = this.getBaseCompoentIndex();
     const bookInfoProperties = {
       category: {
@@ -53,19 +152,22 @@ export class ElasticsearchUsecase {
       title: {
         type: "text",
         analyzer: "text_analyzer",
-        fielddata: true,
       },
       authorName: {
         type: "text",
         analyzer: "text_analyzer",
-        fielddata: true,
       },
       description: {
         type: "text",
         analyzer: "text_analyzer",
-        fielddata: true,
       },
       updatedAt: {
+        type: "date",
+      },
+      importedAt: {
+        type: "date",
+      },
+      createdAt: {
         type: "date",
       },
       numChar: {
@@ -76,6 +178,44 @@ export class ElasticsearchUsecase {
       },
       crawleSource: {
         type: "keyword",
+      },
+      chunks: {
+        type: "nested",
+        properties: {
+          id: {
+            type: "keyword",
+          },
+          index: {
+            type: "keyword",
+          },
+          chapterName: {
+            type: "text",
+            analyzer: "text_analyzer",
+          },
+          sectionName: {
+            type: "text",
+            analyzer: "text_analyzer",
+          },
+          url: {
+            type: "keyword",
+          },
+          importedAt: {
+            type: "date",
+          },
+        },
+      },
+      raw: {
+        properties: {
+          title: {
+            type: "keyword",
+          },
+          authorName: {
+            type: "keyword",
+          },
+          description: {
+            type: "keyword",
+          },
+        },
       },
     };
     return {

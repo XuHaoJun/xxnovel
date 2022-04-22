@@ -12,12 +12,12 @@ import produce from "immer";
 import convertToUtf8 from "./utils/convertToUtf8";
 import convertToZhTw from "./utils/convertToZhTw";
 
-type RateLimitOptions = {
+export type RateLimitOptions = {
   keyGenerator?: (request: AxiosRequestConfig) => string;
   maxDelayMs?: number;
 } & ({ maxRequests?: number; perMilliseconds?: number } | { maxRPS?: number });
 
-interface CrawlerConfig {
+export interface CrawlerConfig {
   enableToUtf8?: boolean;
   enableRandomAgent?: boolean;
   enableS2t?: boolean;

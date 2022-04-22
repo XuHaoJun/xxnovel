@@ -1,20 +1,33 @@
+import { AxiosInstance } from "axios";
 import * as cheerio from "cheerio";
+import produce from "immer";
 import _ from "lodash";
 
-import CrawlerBase from "./CrawlerBase";
-import { IBook, IBookChunk } from "./interfaces/Book";
+import CrawlerBase, { CrawlerConfig } from "./CrawlerBase";
+import { IBook, IBookChunk } from "./interfaces/book";
 import { PtwxzCheerioParser } from "./parsers/PtwxzHtmlParser";
+import * as ObjS2T from "./utils/objS2t";
 
 export default class PtwxzCrawler extends CrawlerBase {
+  constructor(_opts?: CrawlerConfig) {
+    super({ ..._opts, enableS2t: false });
+  }
+
   public async getBook(url: string): Promise<IBook> {
-    const bookInfo = await this.getPartialBook0(url);
+    let bookInfo = await ObjS2T.bookInfo(await this.getPartialBook0(url));
     let chunks: Array<IBookChunk>;
     if (bookInfo.bookChunkInfosUrl) {
-      chunks = await this.getPartialBookChunks(bookInfo.bookChunkInfosUrl);
+      const chunksOri = await this.getPartialBookChunks(
+        bookInfo.bookChunkInfosUrl
+      );
+      chunks = await Promise.all(chunksOri.map(ObjS2T.bookChunk));
     } else {
+      // change to null for crawle failed?
       chunks = [];
     }
-    bookInfo.chunks = chunks;
+    bookInfo = produce(bookInfo, (draft: IBook) => {
+      draft.chunks = chunks;
+    });
 
     return bookInfo;
   }
@@ -26,15 +39,20 @@ export default class PtwxzCrawler extends CrawlerBase {
   }
 
   public async getPartialBookChunks(url: string): Promise<Array<IBookChunk>> {
+    console.debug(url);
     const parsedUrl = new URL(url);
     const { data: html } = await this.getHtml(url);
     return PtwxzCheerioParser.bookChunkInfos(parsedUrl, cheerio.load(html));
   }
 
-  public async getBookContent(url: string): Promise<IBookChunk> {
+  public async getBookChunk(url: string): Promise<IBookChunk> {
     const parsedUrl = new URL(url);
     const { data: html } = await this.getHtml(url);
-    return PtwxzCheerioParser.bookContent(parsedUrl, cheerio.load(html));
+    const bookChunk = PtwxzCheerioParser.bookContent(
+      parsedUrl,
+      cheerio.load(html)
+    );
+    return ObjS2T.bookChunk(bookChunk);
   }
 
   public static randomBookInfoUrl() {
@@ -58,5 +76,9 @@ export default class PtwxzCrawler extends CrawlerBase {
     }
 
     return `https://www.ptwxz.com/bookinfo/${cn}/${cn}${bnStr}.html`;
+  }
+
+  public get axiosInstance(): AxiosInstance {
+    return this.axios;
   }
 }
