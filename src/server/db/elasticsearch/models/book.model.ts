@@ -37,6 +37,7 @@ export interface BookSource
   extends Omit<Crawler.IBook, "descriptionLines" | "chunks"> {
   description?: string;
   chunks?: Array<ISimpleBookChunk>;
+  latestChunk?: ISimpleBookChunk;
   raw?: {
     descriptionLines?: Array<string>;
     title?: string;
@@ -75,6 +76,12 @@ export class BookModel {
       bookDoc.authorName = bookSource.raw.authorName;
       bookDoc.title = bookSource.raw.title;
       bookDoc.descriptionLines = bookSource.raw.descriptionLines;
+    }
+    // compablity old version
+    if (!_.isNumber(bookDoc.chunks?.[0]?.idxByCreatedAtAsc)) {
+      bookDoc.chunks = bookDoc.chunks?.map((x, i) => {
+        return { ...x, idxByCreatedAtAsc: i };
+      });
     }
     return bookDoc;
   }
@@ -178,16 +185,26 @@ export class BookModel {
       description = "";
     }
 
+    const chunks = cbook.chunks?.map<ISimpleBookChunk>((x, i) => {
+      return {
+        ...x,
+        idxByCreatedAtAsc: i,
+      };
+    });
+    const latestChunk = chunks?.[chunks?.length - 1];
+
     const omits: Array<Paths<Crawler.IBook>> = [
       "title",
       "authorName",
       "descriptionLines",
+      "chunks",
     ];
     const tidy = _.omit(cbook, omits);
     return {
       ...tidy,
-      ...{ title, authorName, description },
+      ...{ title, authorName, description, chunks },
       importedAt: cbook.importedAt || new Date(),
+      latestChunk,
       raw: {
         title: cbook.title || "",
         authorName: cbook.authorName || "",

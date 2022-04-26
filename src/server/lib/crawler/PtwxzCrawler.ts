@@ -27,6 +27,7 @@ export default class PtwxzCrawler extends CrawlerBase {
     }
     bookInfo = produce(bookInfo, (draft: IBook) => {
       draft.chunks = chunks;
+      draft.numBookChunks = chunks.length;
     });
 
     return bookInfo;

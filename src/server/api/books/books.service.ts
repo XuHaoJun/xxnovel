@@ -19,7 +19,7 @@ import {
   BookChunkModel,
   BookChunkSource,
 } from "src/server/db/elasticsearch/models/bookChunk.model";
-import moment from "moment";
+import type { IPaginationResponse } from "src/shared/types/apiResponse";
 
 @Injectable()
 export class BooksService {
@@ -28,18 +28,14 @@ export class BooksService {
     private readonly crawlerService: CrawlerService
   ) {}
 
-  public async crawleOneRandom() {
-    const url = PtwxzCrawler.randomBookInfoUrl();
-    return this.crawleOne(url);
-  }
-
   public async getThumbStream(params: { index: string; id: string }) {
     const bookRes = await this.esuc.book.get({
       ...params,
       _source: ["thumbnailUrl"],
     });
     if (bookRes.body._source?.thumbnailUrl) {
-      const res = await axios.get<Stream>(bookRes.body._source?.thumbnailUrl, {
+      const thumb = bookRes.body._source.thumbnailUrl;
+      const res = await axios.get<Stream>(thumb, {
         responseType: "stream",
       });
       return res.data;
@@ -75,16 +71,18 @@ export class BooksService {
 
     const bookId = bookUpsertBody._id;
     const _source: Array<Paths<BookChunkSource>> = ["idxByCreatedAtAsc"];
-    const searchRes = await this.esuc.bookChunk.searchByBookIdAndIdx(
+    const searchImporteds = await this.esuc.bookChunk.searchByBookIdAndIdx(
       bookId,
       Array.from(Array(cbook.chunks?.length || 0).keys()),
       { _source }
     );
     const allIdxs = Array.from(Array(cbook.chunks?.length || 0).keys());
     const importedIdxs =
-      searchRes.body?.hits?.hits?.map((x) => x._source?.idxByCreatedAtAsc) ||
-      [];
-    const needIdxs = allIdxs.filter((x) => !importedIdxs.includes(x));
+      searchImporteds.body?.hits?.hits?.map(
+        (x) => x._source?.idxByCreatedAtAsc
+      ) || [];
+    const _needIdxs = allIdxs.filter((x) => !importedIdxs.includes(x));
+    const needIdxs = _needIdxs.slice(0, 5).concat(_needIdxs.slice(-5));
 
     for (const idx of needIdxs) {
       const chunk = cbook.chunks?.[idx];
@@ -95,6 +93,8 @@ export class BooksService {
           const bookChunk = await this.crawlerService.ptwxzCrawler.getBookChunk(
             url
           );
+          bookChunk.chapterName = chunk.chapterName;
+          bookChunk.sectionName = chunk.sectionName;
           const upsertChunkRes =
             await this.esuc.bookChunk.upsertByCrawleBookChunk({
               bookIndex: bookUpsertBody._index,
@@ -107,28 +107,11 @@ export class BooksService {
               idxByCreatedAtAsc,
               cbookChunk: bookChunk,
             });
-          // const chunkUpsertBody = (
-          //   upsertChunkRes.create || upsertChunkRes.update
-          // )?.body as Body;
         }
       }
     }
 
-    for (const [idxByCreatedAtAsc, chunk] of Array.from(
-      (cbook.chunks || []).entries()
-    )) {
-      // if (idxByCreatedAtAsc == 2) {
-      //   break;
-      // }
-    }
-
     return cbook;
-  }
-
-  public async crawleSaveOneRandom() {
-    const url = PtwxzCrawler.randomBookInfoUrl();
-    const cbook = await this.crawleOne(url);
-    return this.esuc.book.upsertByCrawleBook(cbook);
   }
 
   public static getSimpleFields(): Array<string> {
@@ -140,6 +123,7 @@ export class BooksService {
       "updatedAt",
       "status",
       "category",
+      "latestChunk",
       "importedAt",
     ];
     return fields;
@@ -151,7 +135,13 @@ export class BooksService {
     return fields;
   }
 
-  public async getLatestBooks({ size, from }: { size: number; from: number }) {
+  public async getLatestBooks({
+    size,
+    from,
+  }: {
+    size: number;
+    from: number;
+  }): Promise<IPaginationResponse<BookForClient>> {
     const searchRes = await this.esuc.book.search({
       size,
       from,

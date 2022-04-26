@@ -10,12 +10,13 @@ import {
   BadRequestException,
   UsePipes,
   ValidationPipe,
+  Header,
 } from "@nestjs/common";
 import _ from "lodash";
 import { Response } from "express";
 
 import { BooksService } from "./books.service";
-import { PaginationRange } from "./dto/search.dto";
+import { QueryPaginationRange } from "./dto/search.dto";
 import { GetBookChunkByBookIdAndIdxParams } from "./dto/bookChunk.dto";
 import { BookChunkForClient } from "../../db/elasticsearch/models/bookChunk.model";
 
@@ -36,7 +37,7 @@ export class BooksControllerV1 {
       transform: true,
     })
   )
-  public async getLatestBooks(@Query() q: PaginationRange) {
+  public async getLatestBooks(@Query() q: QueryPaginationRange) {
     const defaultRange = { offset: 0, limit: 100 };
     const { offset, limit } = _.defaults(
       { offset: q.offset, limit: q.limit },
@@ -49,19 +50,9 @@ export class BooksControllerV1 {
     }
   }
 
-  @Get("/crawle/preview")
+  @Get("/crawle")
   public async crawleOne(@Query("src") src: string) {
     return this.booksService.crawleOne(src);
-  }
-
-  @Get("/crawle/preview/random")
-  public async crawleOneRandom() {
-    return this.booksService.crawleOneRandom();
-  }
-
-  @Put("/crawle/random")
-  public async crawleSaveOneRandom() {
-    return this.booksService.crawleSaveOneRandom();
   }
 
   @Get("/indices/:index/:id")
@@ -70,11 +61,13 @@ export class BooksControllerV1 {
   }
 
   @Get("/indices/:index/:id/thumb")
+  @Header('content-type', 'image/jpeg')
   public async getBookThumb(
     @Param("index") index: string,
     @Param("id") id: string,
     @Res() res: Response
   ) {
+    res.setHeader('Cache-Control', 'public, max-age=604800, immutable')
     const stream = await this.booksService.getThumbStream({ index, id });
     if (stream) {
       stream.pipe(res);

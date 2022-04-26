@@ -1,6 +1,13 @@
+import { enableMapSet } from "immer";
+
+enableMapSet();
+
+import { SnackbarProvider } from "notistack";
+
 import * as React from "react";
 import Head from "next/head";
-import { AppProps } from "next/app";
+import type { AppProps } from "next/app";
+import type { NextPage } from "next";
 import { CacheProvider, EmotionCache } from "@emotion/react";
 
 import { Hydrate, QueryClient, QueryClientProvider } from "react-query";
@@ -9,11 +16,22 @@ import BrandingProvider from "../client/themes/BrandingProvider";
 import createEmotionCache from "../client/utils/mui/createEmotionCache";
 import { DefaultThemeProvider } from "src/client/themes/DefaultThemeProvider";
 
+import moment from "moment";
+import "moment/locale/zh-tw"; // without this line it didn't work
+import DefaultLayout from "src/client/layouts/DefaultLayout";
+import { useScrollRestoration } from "src/client/hooks/useScrollRestoration";
+moment.locale("zh-tw");
+
 // Client-side cache, shared for the whole session of the user in the browser.
 const clientSideEmotionCache = createEmotionCache();
 
+type NextPageWithLayout = NextPage & {
+  getLayout?: (page: React.ReactElement) => React.ReactNode;
+};
+
 interface MyAppProps extends AppProps {
   emotionCache?: EmotionCache;
+  Component: NextPageWithLayout;
 }
 
 export default function MyApp(props: MyAppProps) {
@@ -30,6 +48,10 @@ export default function MyApp(props: MyAppProps) {
       },
     });
   }
+  useScrollRestoration(props.router);
+
+  const getLayout =
+    Component.getLayout ?? ((page) => <DefaultLayout>{page}</DefaultLayout>);
 
   return (
     <CacheProvider value={emotionCache}>
@@ -40,7 +62,9 @@ export default function MyApp(props: MyAppProps) {
         <Hydrate state={pageProps.dehydratedState}>
           <DefaultThemeProvider>
             <BrandingProvider>
-              <Component {...pageProps} />
+              <SnackbarProvider maxSnack={3}>
+                {getLayout(<Component {...pageProps} />)}
+              </SnackbarProvider>
             </BrandingProvider>
           </DefaultThemeProvider>
         </Hydrate>

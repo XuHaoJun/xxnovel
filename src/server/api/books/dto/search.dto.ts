@@ -1,16 +1,18 @@
 import { Transform } from "class-transformer";
-import { IsPositive, IsNotEmpty, IsOptional } from "class-validator";
+import { IsPositive, IsNotEmpty, IsOptional, Min } from "class-validator";
 
-export class PaginationRange {
+import type { IQueryPaginationRange } from "src/shared/types/apiResponse";
+
+export class QueryPaginationRange implements IQueryPaginationRange {
   @IsOptional()
-  @IsPositive()
+  @Min(0)
   @IsNotEmpty()
   @Transform(({ value }) => parseInt(value, 10), { toClassOnly: true })
   offset?: number;
 
   @IsOptional()
   @IsNotEmpty()
-  @IsPositive()
+  @Min(0)
   @Transform(({ value }) => parseInt(value, 10), { toClassOnly: true })
   limit?: number;
 }

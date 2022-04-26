@@ -1,28 +1,53 @@
+import JSONStringify from "fast-safe-stringify";
+
 import { getApiHttpClient } from "../../shared/utils/getHttpClient";
+import type { Book, BookChunk } from "../../shared/types/models";
+import {
+  IPaginationResponse,
+  IQueryPaginationRange,
+} from "src/shared/types/apiResponse";
 
-const hc = getApiHttpClient();
+const axios = getApiHttpClient();
 
-export async function getBook(bookId: string): Promise<any> {
-  return (await hc.get(`books/${bookId}`)).data;
+const ROUTE_PATHS = {
+  getBook: (bookIndex: string, bookId: string) =>
+    `books/indices/${bookIndex}/${bookId}`,
+  getLatestBooks: () => `books/latests`,
+  getBookChunk: (bookId: string, idxByCreatedAtAsc: number) =>
+    `books/ids/${bookId}/chunks-by-idxs/${idxByCreatedAtAsc}`,
+};
+
+export const BOOK_QKEYS = {
+  getBook: (bookIndex: string, bookId: string) => [
+    ROUTE_PATHS.getBook(bookIndex, bookId),
+  ],
+  getLatestBooks: (params?: IQueryPaginationRange) => [
+    ROUTE_PATHS.getLatestBooks(),
+    JSONStringify.stable(params),
+  ],
+  getBookChunk: (bookId: string, idxByCreatedAtAsc: number) => [
+    ROUTE_PATHS.getBookChunk(bookId, idxByCreatedAtAsc),
+  ],
+  getInfiniteBookChunks: () => ["infiniteBookChunks"],
+};
+
+export async function getBook(
+  bookIndex: string,
+  bookId: string
+): Promise<Book> {
+  return (await axios.get(ROUTE_PATHS.getBook(bookIndex, bookId))).data;
 }
 
-export async function getGoodBookInfos(): Promise<any> {
-  // return [];
-  return (await hc.get(`books/goods`)).data;
-}
-
-export async function getBookChunkInfos(bookId: string): Promise<any> {
-  return (await hc.get(`books/${bookId}/chunkInfos`)).data;
+export async function getLatestBooks(
+  params?: IQueryPaginationRange
+): Promise<IPaginationResponse<Book>> {
+  return (await axios.get(ROUTE_PATHS.getLatestBooks(), { params })).data;
 }
 
 export async function getBookChunk(
   bookId: string,
-  bookChunkId: string
-): Promise<any> {
-  return new Date().toISOString();
-  return (await hc.get(`books/${bookId}/chunks/${bookChunkId}`)).data;
-}
-
-export async function importBook(bookId: string): Promise<any> {
-  return (await hc.post(`books/${bookId}/import`)).data;
+  idxByCreatedAtAsc: number
+): Promise<BookChunk> {
+  return (await axios.get(ROUTE_PATHS.getBookChunk(bookId, idxByCreatedAtAsc)))
+    .data;
 }
