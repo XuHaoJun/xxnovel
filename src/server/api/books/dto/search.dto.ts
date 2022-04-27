@@ -16,3 +16,5 @@ export class QueryPaginationRange implements IQueryPaginationRange {
   @Transform(({ value }) => parseInt(value, 10), { toClassOnly: true })
   limit?: number;
 }
+
+export class SearchBookDto extends QueryPaginationRange {}

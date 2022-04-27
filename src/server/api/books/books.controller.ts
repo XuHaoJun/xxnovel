@@ -11,6 +11,8 @@ import {
   UsePipes,
   ValidationPipe,
   Header,
+  Post,
+  Body,
 } from "@nestjs/common";
 import _ from "lodash";
 import { Response } from "express";
@@ -46,8 +48,41 @@ export class BooksControllerV1 {
     if (offset + limit > 10000) {
       throw new BadRequestException("offset + limit  > 10000");
     } else {
-      return this.booksService.getLatestBooks({ size: limit, from: offset });
+      return this.booksService.getLatestBooks({ offset, limit });
     }
+  }
+
+  @Post("/search")
+  @UsePipes(
+    new ValidationPipe({
+      forbidNonWhitelisted: true,
+      forbidUnknownValues: true,
+      transform: true,
+    })
+  )
+  public async search(@Body() body: QueryPaginationRange) {
+    const defaultRange = { offset: 0, limit: 100 };
+    const { offset, limit } = _.defaults(
+      { offset: body.offset, limit: body.limit },
+      defaultRange
+    );
+    if (offset + limit > 10000) {
+      throw new BadRequestException("offset + limit  > 10000");
+    } else {
+      return this.booksService.search({ offset, limit });
+    }
+  }
+
+  @Get("/title-suggests")
+  public async getTitleSuggests(
+    @Query("prefix") prefix: string
+  ): Promise<Array<string>> {
+    const resp = await this.booksService.getTitleSuggests(prefix);
+    return _.flatten(
+      resp.body.suggest?.titleSuggests.map((x) =>
+        x.options.map((xx) => xx.text)
+      )
+    );
   }
 
   @Get("/crawle")
@@ -61,13 +96,13 @@ export class BooksControllerV1 {
   }
 
   @Get("/indices/:index/:id/thumb")
-  @Header('content-type', 'image/jpeg')
+  @Header("content-type", "image/jpeg")
   public async getBookThumb(
     @Param("index") index: string,
     @Param("id") id: string,
     @Res() res: Response
   ) {
-    res.setHeader('Cache-Control', 'public, max-age=604800, immutable')
+    res.setHeader("Cache-Control", "public, max-age=604800, immutable");
     const stream = await this.booksService.getThumbStream({ index, id });
     if (stream) {
       stream.pipe(res);

@@ -3,6 +3,7 @@ import {
   GetResponse,
   IndexResponse,
   SearchHit,
+  SearchRequest,
   SearchResponse,
   SearchTotalHits,
   UpdateResponse,
@@ -26,6 +27,7 @@ import { Paths } from "../../../lib/pathsType";
 import * as TokenizeHelper from "../utils/tokenizeHelper";
 import { UpsertResult } from "../interfaces/UpsertResult";
 import moment from "moment";
+import { $PropertyType } from "utility-types";
 
 export interface ISimpleBookChunk extends Crawler.IBookChunk {
   _index?: string;
@@ -33,11 +35,17 @@ export interface ISimpleBookChunk extends Crawler.IBookChunk {
   id?: string;
 }
 
+interface EsSuggest {
+  input: Array<string>;
+  weight?: number;
+}
+
 export interface BookSource
   extends Omit<Crawler.IBook, "descriptionLines" | "chunks"> {
   description?: string;
   chunks?: Array<ISimpleBookChunk>;
   latestChunk?: ISimpleBookChunk;
+  titleSuggest?: Array<EsSuggest>;
   raw?: {
     descriptionLines?: Array<string>;
     title?: string;
@@ -88,12 +96,12 @@ export class BookModel {
 
   public static hitsToClient(hits: SearchHit<BookSource>[]): BookForClient[] {
     return hits.map((x) =>
-      BookModel.toClient(x._index, x._id, x._source as BookSource)
+      BookModel.toClient(x._index, x._id as string, x._source as BookSource)
     );
   }
 
   public async search(
-    params?: RequestParams.Search<SearchResponse<BookSource>>,
+    params?: RequestParams.Search<$PropertyType<SearchRequest, "body">>,
     options?: TransportRequestOptions
   ) {
     return this.esClient.search<SearchResponse<BookSource>>(
@@ -140,7 +148,7 @@ export class BookModel {
       return {
         update: await esClient.update<UpdateResponse<BookSource>>({
           index: WRITE_INDICES_NAMES.BookInfo,
-          id: hit._id,
+          id: `${hit._id}`,
           body: { doc: newBook },
         }),
         _source: newBook,
@@ -161,10 +169,14 @@ export class BookModel {
     cbook: Crawler.IBook
   ): Promise<BookSource> {
     let title: string;
+    let titleSuggest: Array<EsSuggest>;
     if (cbook.title) {
       title = await TokenizeHelper.toTokenrizedStr(_.castArray(cbook.title));
+      titleSuggest = [{ input: [cbook.title] }];
     } else {
+      // throw error ?
       title = "";
+      titleSuggest = [];
     }
 
     let authorName: string;
@@ -203,6 +215,7 @@ export class BookModel {
     return {
       ...tidy,
       ...{ title, authorName, description, chunks },
+      titleSuggest,
       importedAt: cbook.importedAt || new Date(),
       latestChunk,
       raw: {

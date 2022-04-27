@@ -13,13 +13,18 @@ import {
   BookModel,
   BookSource,
 } from "src/server/db/elasticsearch/models/book.model";
-import { SearchTotalHits } from "@elastic/elasticsearch/api/types";
+import {
+  SearchSuggest,
+  SearchTotalHits,
+} from "@elastic/elasticsearch/api/types";
 import {
   BookChunkForClient,
   BookChunkModel,
   BookChunkSource,
 } from "src/server/db/elasticsearch/models/bookChunk.model";
 import type { IPaginationResponse } from "src/shared/types/apiResponse";
+import produce from "immer";
+import { QueryPaginationRange, SearchBookDto } from "./dto/search.dto";
 
 @Injectable()
 export class BooksService {
@@ -54,7 +59,7 @@ export class BooksService {
     });
     return BookModel.toClient(
       bookRes.body._index,
-      bookRes.body._id,
+      bookRes.body._id as string,
       bookRes.body._source
     );
   }
@@ -90,11 +95,13 @@ export class BooksService {
       if (chunk) {
         const { url } = chunk;
         if (url) {
-          const bookChunk = await this.crawlerService.ptwxzCrawler.getBookChunk(
+          let bookChunk = await this.crawlerService.ptwxzCrawler.getBookChunk(
             url
           );
-          bookChunk.chapterName = chunk.chapterName;
-          bookChunk.sectionName = chunk.sectionName;
+          bookChunk = produce(bookChunk, (draft) => {
+            draft.chapterName = chunk.chapterName;
+            draft.sectionName = chunk.sectionName;
+          });
           const upsertChunkRes =
             await this.esuc.bookChunk.upsertByCrawleBookChunk({
               bookIndex: bookUpsertBody._index,
@@ -135,13 +142,11 @@ export class BooksService {
     return fields;
   }
 
-  public async getLatestBooks({
-    size,
-    from,
-  }: {
-    size: number;
-    from: number;
-  }): Promise<IPaginationResponse<BookForClient>> {
+  public async getLatestBooks(
+    q: QueryPaginationRange
+  ): Promise<IPaginationResponse<BookForClient>> {
+    const size = q.limit;
+    const from = q.offset;
     const searchRes = await this.esuc.book.search({
       size,
       from,
@@ -153,6 +158,40 @@ export class BooksService {
       total,
       items: BookModel.hitsToClient(searchRes.body.hits.hits),
     };
+  }
+
+  public async search(body: SearchBookDto) {
+    const size = body.limit;
+    const from = body.offset;
+    return this.esuc.book.search({
+      size,
+      from,
+    });
+  }
+
+  public async getTitleSuggests(prefix: string) {
+    return this.esuc.book.search({
+      _source: [""],
+      body: {
+        suggest: {
+          titleSuggests: {
+            prefix,
+            completion: {
+              field: "titleSuggest",
+              skip_duplicates: true,
+              size: 10,
+              fuzzy: {
+                fuzziness: "auto",
+                min_length: 1,
+                prefix_length: 1,
+                transpositions: true,
+                unicode_aware: true,
+              },
+            },
+          },
+        },
+      },
+    });
   }
 
   public async getBookChunkByBookIdAndIdx(

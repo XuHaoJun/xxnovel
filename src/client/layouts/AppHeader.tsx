@@ -15,7 +15,21 @@ import ThemeModeToggle from "../components/header/ThemeModeToggle";
 import { setCookies } from "cookies-next";
 import Toolbar from "@mui/material/Toolbar";
 import Typography from "@mui/material/Typography";
-import { useScrollTrigger, Slide } from "@mui/material";
+import {
+  useScrollTrigger,
+  Slide,
+  Button,
+  InputBase,
+  Paper,
+  Autocomplete,
+  TextField,
+} from "@mui/material";
+import SearchIcon from "@mui/icons-material/Search";
+import Link from "../components/Link/Link";
+import suggestParse from "autosuggest-highlight/parse";
+import suggestMatch from "autosuggest-highlight/match";
+import { useBookTitleSuggests } from "../queries/book";
+import { useDebounce } from "usehooks-ts";
 
 const Header = styled("header")(({ theme }) => ({
   position: "sticky",
@@ -95,6 +109,10 @@ export default function AppHeader({
 
   const trigger = useScrollTrigger();
 
+  const [acInputValue, setAcInputValue] = React.useState("");
+  const debounceAcInputValue = useDebounce(acInputValue, 350);
+  const { bookTitleSuggests } = useBookTitleSuggests(debounceAcInputValue);
+
   return (
     <Slide
       appear={false}
@@ -106,21 +124,68 @@ export default function AppHeader({
           <IconButton
             aria-label="open drawer"
             edge="start"
-            sx={{ mr: 2, ...(open && { display: "none" }) }}
+            sx={{ ...(open && { display: "none" }) }}
             onClick={openDrawer || NOTHING}
           >
             <MenuIcon />
           </IconButton>
-        </Toolbar>
-        {/* <Container sx={{ display: "flex", alignItems: "center", minHeight: 56 }}>
-        Title
-        {mode !== null ? (
-          <ThemeModeToggle
-            checked={theme.palette.mode === "dark"}
-            onChange={handleChangeThemeMode}
+          <Button
+            LinkComponent={Link}
+            href="/"
+            sx={{ ...(open && { display: "none" }) }}
+          >
+            xxbook
+          </Button>
+          <Autocomplete
+            id="asynchronous-demo"
+            size="small"
+            disableClearable
+            freeSolo
+            onChange={(e, v) => {
+              e.preventDefault();
+            }}
+            options={bookTitleSuggests || []}
+            onInputChange={(event, newAcInputValue) => {
+              setAcInputValue(newAcInputValue);
+            }}
+            getOptionLabel={(option) => (option ? option : "")}
+            sx={{ width: 400 }}
+            renderInput={(params) => {
+              return (
+                <TextField
+                  {...params}
+                  margin="normal"
+                  placeholder="搜尋小說..."
+                  InputProps={{
+                    ...params.InputProps,
+                    type: "search",
+                  }}
+                />
+              );
+            }}
+            renderOption={(props, option, { inputValue }) => {
+              const matches = suggestMatch(option, inputValue);
+              const parts = suggestParse(option, matches);
+
+              return (
+                <li {...props}>
+                  <Box>
+                    {parts.map((part, index) => (
+                      <span
+                        key={index}
+                        style={{
+                          fontWeight: part.highlight ? 900 : 400,
+                        }}
+                      >
+                        {part.text}
+                      </span>
+                    ))}
+                  </Box>
+                </li>
+              );
+            }}
           />
-        ) : null}
-      </Container> */}
+        </Toolbar>
       </AppBar>
     </Slide>
   );

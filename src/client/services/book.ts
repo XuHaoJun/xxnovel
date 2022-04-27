@@ -15,6 +15,7 @@ const ROUTE_PATHS = {
   getLatestBooks: () => `books/latests`,
   getBookChunk: (bookId: string, idxByCreatedAtAsc: number) =>
     `books/ids/${bookId}/chunks-by-idxs/${idxByCreatedAtAsc}`,
+  getBookTitleSuggests: () => `books/title-suggests`,
 };
 
 export const BOOK_QKEYS = {
@@ -29,6 +30,10 @@ export const BOOK_QKEYS = {
     ROUTE_PATHS.getBookChunk(bookId, idxByCreatedAtAsc),
   ],
   getInfiniteBookChunks: () => ["infiniteBookChunks"],
+  getBookTitleSuggests: (prefix: string) => [
+    ROUTE_PATHS.getBookTitleSuggests(),
+    prefix,
+  ],
 };
 
 export async function getBook(
@@ -50,4 +55,14 @@ export async function getBookChunk(
 ): Promise<BookChunk> {
   return (await axios.get(ROUTE_PATHS.getBookChunk(bookId, idxByCreatedAtAsc)))
     .data;
+}
+
+export async function getBookTitleSuggests(
+  prefix: string
+): Promise<Array<string>> {
+  return (
+    await axios.get(ROUTE_PATHS.getBookTitleSuggests(), {
+      params: { prefix },
+    })
+  ).data;
 }

@@ -7,6 +7,7 @@ const MomentTimezoneDataPlugin = require("moment-timezone-data-webpack-plugin");
 module.exports = (phase, defaultConfig) => {
   return withBundleAnalyzer({
     ...defaultConfig,
+    reactStrictMode: false,
     webpack: (config) => {
       config.plugins.push(
         new MomentTimezoneDataPlugin({

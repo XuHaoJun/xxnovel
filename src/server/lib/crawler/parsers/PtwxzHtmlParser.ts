@@ -141,11 +141,6 @@ export class PtwxzCheerioParser {
               url,
             };
             chunks.push(chunk);
-          } else {
-            chunks.push({
-              chapterName: "",
-              sectionName: "",
-            });
           }
         }
       }
@@ -165,8 +160,8 @@ export class PtwxzCheerioParser {
     }
     const h1text = $("h1").text();
     const bookTitle = $("h1 > a").text();
-      // should same as book toc's name
-    const sectionName = h1text.replace(bookTitle, '');
+    // should same as book toc's name
+    const sectionName = h1text.replace(bookTitle, "");
     return {
       sectionName: sectionName,
       contentLines: lines,

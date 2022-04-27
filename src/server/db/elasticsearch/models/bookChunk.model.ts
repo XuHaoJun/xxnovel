@@ -79,7 +79,11 @@ export class BookChunkModel {
     hits: SearchHit<BookChunkSource>[]
   ): BookChunkForClient[] {
     return hits.map((x) =>
-      BookChunkModel.toClient(x._index, x._id, x._source as BookChunkSource)
+      BookChunkModel.toClient(
+        x._index,
+        x._id as string,
+        x._source as BookChunkSource
+      )
     );
   }
 
@@ -112,7 +116,7 @@ export class BookChunkModel {
       return {
         update: await esClient.update<UpdateResponse<BookChunkSource>>({
           index: WRITE_INDICES_NAMES.BookChunk,
-          id: hit._id,
+          id: `${hit._id}`,
           body: { doc: bookChunkSource },
         }),
         _source: bookChunkSource,

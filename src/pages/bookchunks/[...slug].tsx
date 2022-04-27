@@ -145,7 +145,9 @@ const BookChunkPage: FC<BookChunkPageProps> = (props: BookChunkPageProps) => {
             if (fetchResult.isError) {
               const idx = _.last(fetchResult.data?.pageParams) as number;
               const sectionName = book?.chunks?.[idx + 1]?.sectionName;
-              enqueueSnackbar(`${sectionName} | 章節未匯入`, { variant: "info" });
+              enqueueSnackbar(`${sectionName} | 章節未匯入`, {
+                variant: "info",
+              });
             }
           }
         }
@@ -193,10 +195,11 @@ const BookChunkPage: FC<BookChunkPageProps> = (props: BookChunkPageProps) => {
               variant="outlined"
               sx={{ padding: "3rem" }}
             >
-              <InView>
-                {({ inView, ref, entry }) => {
+              <InView
+                as="div"
+                onChange={(titleInView, entry) => {
                   if (
-                    inView &&
+                    titleInView &&
                     typeof bookChunk.idxByCreatedAtAsc === "number" &&
                     idxByCreatedAt !== bookChunk.idxByCreatedAtAsc
                   ) {
@@ -211,16 +214,11 @@ const BookChunkPage: FC<BookChunkPageProps> = (props: BookChunkPageProps) => {
                     });
                     deleteScrollPos(asPath);
                   }
-                  return (
-                    <Typography
-                      ref={ref}
-                      variant="h5"
-                      sx={{ marginBottom: "2rem" }}
-                    >
-                      {bookChunk?.sectionName}
-                    </Typography>
-                  );
                 }}
+              >
+                <Typography variant="h5" sx={{ marginBottom: "2rem" }}>
+                  {bookChunk?.sectionName}
+                </Typography>
               </InView>
               {bookChunk?.contentLines?.map((x, i) => {
                 return (
@@ -246,7 +244,7 @@ const BookChunkPage: FC<BookChunkPageProps> = (props: BookChunkPageProps) => {
           variant="outlined"
           sx={{ padding: "3rem" }}
         >
-          <Typography variant="h1" sx={{ marginBottom: "2rem", width: '50%' }}>
+          <Typography variant="h1" sx={{ marginBottom: "2rem", width: "50%" }}>
             <Skeleton />
           </Typography>
           {Array.from(Array(5).keys()).map((x, i) => {
@@ -297,7 +295,7 @@ export const getServerSideProps = async (
       {
         getNextPageParam: (lastPage, pages) => {
           if (typeof lastPage.idxByCreatedAtAsc !== "number") {
-            throw new Error("not found idxByCreatedAtAsc");
+            return undefined;
           } else {
             return lastPage.idxByCreatedAtAsc;
           }

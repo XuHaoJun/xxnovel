@@ -4,6 +4,7 @@ import {
   BOOK_QKEYS,
   getBook,
   getBookChunk,
+  getBookTitleSuggests,
   getLatestBooks,
 } from "../services/book";
 
@@ -38,10 +39,6 @@ export const useBookChunk = (bookId: string, idxByCreatedAtAsc: number) => {
   return { bookChunk, queryOthers };
 };
 
-export const NotFoundIdxByCreatedAtAscError = new Error(
-  "not found idxByCreatedAtAsc"
-);
-
 export const useInfiniteBookChunks = (
   bookId: string,
   initIdxByCreatedAtAsc: number,
@@ -54,16 +51,17 @@ export const useInfiniteBookChunks = (
       enabled: Boolean(book),
       getNextPageParam: (lastPage, pages) => {
         if (typeof lastPage.idxByCreatedAtAsc !== "number") {
-          throw NotFoundIdxByCreatedAtAscError;
+          return undefined;
         } else {
           const nextPage = lastPage.idxByCreatedAtAsc + 1;
           if (book?.chunks?.[nextPage]) {
             return nextPage;
           } else {
-            throw NotFoundIdxByCreatedAtAscError;
+            return undefined;
           }
         }
       },
+      retry: 1,
     }
   );
 
@@ -71,4 +69,16 @@ export const useInfiniteBookChunks = (
     bookChunks: data?.pages,
     infiniteBookChunksQueryOthers: { data, ...infiniteBookChunksQueryOthers },
   };
+};
+
+export const useBookTitleSuggests = (prefix: string) => {
+  const { data: bookTitleSuggests, ...queryOthers } = useQuery(
+    BOOK_QKEYS.getBookTitleSuggests(prefix),
+    () => getBookTitleSuggests(prefix),
+    {
+      enabled: prefix.length > 0,
+      staleTime: 1000 * 60 * 3,
+    }
+  );
+  return { bookTitleSuggests, queryOthers };
 };

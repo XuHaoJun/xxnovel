@@ -15,6 +15,7 @@ import { Hydrate, QueryClient, QueryClientProvider } from "react-query";
 import BrandingProvider from "../client/themes/BrandingProvider";
 import createEmotionCache from "../client/utils/mui/createEmotionCache";
 import { DefaultThemeProvider } from "src/client/themes/DefaultThemeProvider";
+import NextNProgress from "nextjs-progressbar";
 
 import moment from "moment";
 import "moment/locale/zh-tw"; // without this line it didn't work
@@ -37,17 +38,19 @@ interface MyAppProps extends AppProps {
 export default function MyApp(props: MyAppProps) {
   const { Component, emotionCache = clientSideEmotionCache, pageProps } = props;
   let queryClient: QueryClient;
-  if (typeof window !== "undefined") {
-    const [qc] = React.useState(() => new QueryClient());
-    queryClient = qc;
-  } else {
-    queryClient = new QueryClient();
-    queryClient.setDefaultOptions({
-      queries: {
-        staleTime: 1000 * 10,
-      },
-    });
-  }
+  // if (typeof window !== "undefined") {
+  //   const [qc] = React.useState(() => new QueryClient());
+  //   queryClient = qc;
+  // } else {
+  //   queryClient = new QueryClient();
+  //   queryClient.setDefaultOptions({
+  //     queries: {
+  //       staleTime: 1000 * 10,
+  //     },
+  //   });
+  // }
+  const [qc] = React.useState(() => new QueryClient());
+  queryClient = qc;
   useScrollRestoration(props.router);
 
   const getLayout =
@@ -63,6 +66,7 @@ export default function MyApp(props: MyAppProps) {
           <DefaultThemeProvider>
             <BrandingProvider>
               <SnackbarProvider maxSnack={3}>
+                <NextNProgress />
                 {getLayout(<Component {...pageProps} />)}
               </SnackbarProvider>
             </BrandingProvider>

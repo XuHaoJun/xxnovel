@@ -6,6 +6,7 @@ import { NODE_ENV } from "../shared/constants/env";
 import { PagesModule } from "./pages/pages.module";
 import { ApiModule } from "./api/api.module";
 import { InitialModule } from "./initial/initial.module";
+import { LoggerModule } from "nestjs-pino";
 
 declare const module: any;
 
@@ -26,7 +27,19 @@ export class AppModule {
 
     return {
       module: AppModule,
-      imports: [ApiModule, InitialModule],
+      imports: [
+        ApiModule,
+        InitialModule,
+        LoggerModule.forRoot({
+          pinoHttp: {
+            level: process.env.NODE_ENV !== "production" ? "debug" : "info",
+            transport:
+              process.env.NODE_ENV !== "production"
+                ? { target: "pino-pretty" }
+                : undefined,
+          },
+        }),
+      ],
       controllers: [],
       providers: [],
     };

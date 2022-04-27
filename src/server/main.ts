@@ -11,6 +11,7 @@ import cookieParser from "cookie-parser";
 import helmet from "helmet";
 import { NestFactory } from "@nestjs/core";
 import { VersioningType, VERSION_NEUTRAL } from "@nestjs/common";
+import { Logger } from "nestjs-pino";
 
 import { AppModule } from "./app.module";
 import { PORT } from "../shared/constants/env";
@@ -19,7 +20,10 @@ import { InitialService } from "./initial/initial.service";
 declare const module: any;
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule.initialize());
+  const app = await NestFactory.create(AppModule.initialize(), {
+    bufferLogs: true,
+  });
+  app.useLogger(app.get(Logger));
   app.use(cookieParser());
   app.use(compression());
   app.use(helmet());

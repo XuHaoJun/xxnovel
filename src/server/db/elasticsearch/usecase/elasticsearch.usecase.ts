@@ -71,14 +71,17 @@ export class ElasticsearchUsecase {
           title: {
             type: "text",
             analyzer: "text_analyzer",
+            search_analyzer: "text_analyzer",
           },
           authorName: {
             type: "text",
             analyzer: "text_analyzer",
+            search_analyzer: "text_analyzer",
           },
           description: {
             type: "text",
             analyzer: "text_analyzer",
+            search_analyzer: "text_analyzer",
           },
         },
       },
@@ -99,14 +102,17 @@ export class ElasticsearchUsecase {
       content: {
         type: "text",
         analyzer: "text_analyzer",
+        search_analyzer: "text_analyzer",
       },
       chapterName: {
         type: "text",
         analyzer: "text_analyzer",
+        search_analyzer: "text_analyzer",
       },
       sectionName: {
         type: "text",
         analyzer: "text_analyzer",
+        search_analyzer: "text_analyzer",
       },
       url: {
         type: "keyword",
@@ -149,13 +155,22 @@ export class ElasticsearchUsecase {
       status: {
         type: "keyword",
       },
+      titleSuggest: {
+        type: "completion",
+        analyzer: "standard",
+        preserve_separators: false,
+        preserve_position_increments: true,
+        max_input_length: 20,
+      },
       title: {
         type: "text",
         analyzer: "text_analyzer",
+        search_analyzer: "text_analyzer",
       },
       authorName: {
         type: "text",
         analyzer: "text_analyzer",
+        search_analyzer: "text_analyzer",
       },
       description: {
         type: "text",
@@ -191,10 +206,12 @@ export class ElasticsearchUsecase {
           chapterName: {
             type: "text",
             analyzer: "text_analyzer",
+            search_analyzer: "text_analyzer",
           },
           sectionName: {
             type: "text",
             analyzer: "text_analyzer",
+            search_analyzer: "text_analyzer",
           },
           url: {
             type: "keyword",

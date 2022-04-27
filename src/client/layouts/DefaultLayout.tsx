@@ -29,6 +29,7 @@ import { useChangeTheme } from "../themes/DefaultThemeProvider";
 import Main from "./Main";
 import NextLink from "next/link";
 import MyLink from "src/client/components/Link";
+import Link from "src/client/components/Link";
 
 const drawerWidth = 240;
 
@@ -108,6 +109,8 @@ export default function DefaultLayout({
     { autoHideHeader: false }
   );
 
+  const smMatches = useMediaQuery(theme.breakpoints.up("sm"));
+
   return (
     <DispatchContext.Provider value={dispatch}>
       <AppHeader
@@ -124,14 +127,21 @@ export default function DefaultLayout({
             boxSizing: "border-box",
           },
         }}
-        variant="persistent"
+        ModalProps={{
+          keepMounted: true, // Better open performance on mobile.
+        }}
+        variant={smMatches ? "persistent" : "temporary"}
         anchor="left"
+        onClose={handleDrawerClose}
         open={open}
       >
         <DrawerHeader>
           <IconButton onClick={handleDrawerClose}>
             <MenuIcon />
           </IconButton>
+          <Button LinkComponent={Link} href="/">
+            xxbook
+          </Button>
           {mode !== null ? (
             <ThemeModeToggle
               checked={theme.palette.mode === "dark"}

@@ -1,5 +1,5 @@
 import * as React from "react";
-import { GetServerSideProps } from "next";
+import { GetServerSideProps, GetStaticProps, GetStaticPaths } from "next";
 import NextLink from "next/link";
 import { useRouter } from "next/router";
 import { FC } from "react";
@@ -27,9 +27,10 @@ import ArrowForwardIosSharpIcon from "@mui/icons-material/ArrowForwardIosSharp";
 
 import Link from "src/client/components/Link";
 import { useBook } from "src/client/queries/book";
-import { BOOK_QKEYS, getBook } from "src/client/services/book";
+import { BOOK_QKEYS, getBook, getLatestBooks } from "src/client/services/book";
 import { Book } from "src/shared/types/models";
 import * as pageHrefs from "src/client/pageHrefs";
+import { NODE_ENV } from "src/shared/constants/env";
 
 const MyAccordion = styled((props: AccordionProps) => (
   <Accordion disableGutters elevation={0} square {...props} />
@@ -67,6 +68,8 @@ const MyAccordionDetails = styled(AccordionDetails)(({ theme }) => ({
   borderTop: "1px solid rgba(0, 0, 0, .125)",
 }));
 
+const NUM_LIMIT_CHUNKS = 6;
+
 function BookAccordions({ book }: { book?: Book }) {
   const latestPanelName = "latestPanel";
   const tocPanelName = "tocPanel";
@@ -93,7 +96,7 @@ function BookAccordions({ book }: { book?: Book }) {
       }
     };
 
-  const numLimitChunks = 6;
+  const numLimitChunks = NUM_LIMIT_CHUNKS;
   const showMore = (book?.chunks?.length || 0) > numLimitChunks;
   const numMores = showMore ? (book?.chunks?.length || 0) - numLimitChunks : 0;
 
@@ -140,7 +143,7 @@ function BookAccordions({ book }: { book?: Book }) {
           <Grid container spacing={3}>
             {chunksSortByLatest.map((c) => {
               return (
-                <Grid key={c.id} item xs={12} md={4}>
+                <Grid key={c.idxByCreatedAtAsc} item xs={12} md={4}>
                   {c.sectionName}
                 </Grid>
               );
@@ -149,7 +152,8 @@ function BookAccordions({ book }: { book?: Book }) {
               <Box sx={{ display: "flex", justifyContent: "center" }}>
                 {showMore && (
                   <Button onClick={handleMoreChange(latestPanelName)}>
-                    展開 {numMores} 筆章節
+                    {chunkExpandMores.has(latestPanelName) ? "隱藏" : "展開"}
+                    其他 {numMores} 筆章節
                   </Button>
                 )}
               </Box>
@@ -173,7 +177,7 @@ function BookAccordions({ book }: { book?: Book }) {
           <Grid container spacing={3}>
             {chunks.map((c) => {
               return (
-                <Grid key={c.id} item xs={12} md={4}>
+                <Grid key={`toc-${c.idxByCreatedAtAsc}`} item xs={12} md={4}>
                   <Link
                     href={pageHrefs.bookChunk({ book, simpleBookChunk: c })}
                   >
@@ -186,7 +190,8 @@ function BookAccordions({ book }: { book?: Book }) {
               <Box sx={{ display: "flex", justifyContent: "center" }}>
                 {showMore && (
                   <Button onClick={handleMoreChange(tocPanelName)}>
-                    展開 {numMores} 筆章節
+                    {chunkExpandMores.has(tocPanelName) ? "隱藏" : "展開"}
+                    其他 {numMores} 筆章節
                   </Button>
                 )}
               </Box>
@@ -210,28 +215,49 @@ const BookPage: FC<any> = () => {
   );
 };
 
-export const getServerSideProps: GetServerSideProps = async (ctx: any) => {
+export const getStaticPaths: GetStaticPaths = async () => {
+  const books = (await getLatestBooks({ offset: 0, limit: 100 })).items;
+  return {
+    paths: books.map((b) => {
+      return {
+        params: {
+          slug: [b._index, b.id],
+        },
+      };
+    }),
+    fallback: "blocking",
+  };
+};
+
+export const getStaticProps: GetStaticProps = async (ctx: any) => {
   const queryClient = new QueryClient();
   queryClient.setDefaultOptions({
     queries: {
       staleTime: 1000 * 60,
     },
   });
-
-  const [bookIndex, bookId] = ctx.query.slug || [];
+  const [bookIndex, bookId] = ctx.params.slug || [];
   const qkey = BOOK_QKEYS.getBook(bookIndex, bookId);
   await queryClient.prefetchQuery(qkey, () => getBook(bookIndex, bookId));
-  const book = queryClient.getQueryData(qkey);
+  const book = queryClient.getQueryData<Book>(qkey);
 
   if (!book) {
     return {
       notFound: true,
     };
   } else {
+    book.chunks = book.chunks?.map((x, i, ary) => {
+      if (i < NUM_LIMIT_CHUNKS || i >= ary.length - NUM_LIMIT_CHUNKS) {
+        return x;
+      } else {
+        return {};
+      }
+    });
     return {
       props: {
         dehydratedState: dehydrate(queryClient),
       },
+      revalidate: 60 * 60,
     };
   }
 };

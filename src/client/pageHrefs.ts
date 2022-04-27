@@ -1,7 +1,7 @@
 import { Book, ISimpleBookChunk } from "src/shared/types/models";
 
 export function book(book: Book | undefined) {
-  return `books/${book?._index}/${book?.id}`;
+  return `/books/${book?._index}/${book?.id}`;
 }
 
 export function bookChunk({
