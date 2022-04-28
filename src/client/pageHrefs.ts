@@ -1,6 +1,6 @@
 import { Book, ISimpleBookChunk } from "src/shared/types/models";
 
-export function book(book: Book | undefined) {
+export function book(book: Pick<Book, '_index' | 'id'> | undefined) {
   return `/books/${book?._index}/${book?.id}`;
 }
 

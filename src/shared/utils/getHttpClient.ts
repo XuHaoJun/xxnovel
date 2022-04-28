@@ -17,7 +17,7 @@ export function getApiHttpClient() {
   } else {
     if (runtime.type === "node") {
       if (!singletonHttpClients.server) {
-        const httpClient = createHttpClient({ timeout: 1000 * 10 });
+        const httpClient = createHttpClient({ timeout: 1000 * 60 * 5 });
         singletonHttpClients.server = httpClient;
         return singletonHttpClients.server;
       } else {

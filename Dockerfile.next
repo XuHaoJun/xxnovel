@@ -32,6 +32,8 @@ COPY package.json yarn.lock ./
 COPY next-env.d.ts next.config.js ./
 COPY tsconfig.json .
 COPY src src
+# pwa will generate in build time
+COPY public public
 # because build time require call API_PROXY
 COPY .env .
 RUN npm run build:next
@@ -43,14 +45,12 @@ FROM base-stage AS release-stage
 ENV NODE_ENV=production
 ENV TZ Asia/Taipei
 
-COPY package.json .
-COPY next-env.d.ts .
-COPY next.config.js .
-
-# COPY public .
-
 COPY --from=dependencies-stage /production_node_modules node_modules
 COPY --from=build-stage /app/xxnovel/.next .next
+COPY --from=build-stage /app/xxnovel/public public
+
+COPY package.json .
+COPY next-env.d.ts next.config.js ./
 
 COPY .env .
 

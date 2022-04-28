@@ -60,6 +60,7 @@
     "nestjs-pino": "^2.5.2",
     "next": "^12.1.5",
     "next-http-proxy-middleware": "^1.2.4",
+    "next-pwa": "^5.5.2",
     "nextjs-progressbar": "^0.0.14",
     "notistack": "^2.0.4",
     "opencc": "^1.1.3",

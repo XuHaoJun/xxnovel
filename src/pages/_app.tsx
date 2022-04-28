@@ -38,19 +38,17 @@ interface MyAppProps extends AppProps {
 export default function MyApp(props: MyAppProps) {
   const { Component, emotionCache = clientSideEmotionCache, pageProps } = props;
   let queryClient: QueryClient;
-  // if (typeof window !== "undefined") {
-  //   const [qc] = React.useState(() => new QueryClient());
-  //   queryClient = qc;
-  // } else {
-  //   queryClient = new QueryClient();
-  //   queryClient.setDefaultOptions({
-  //     queries: {
-  //       staleTime: 1000 * 10,
-  //     },
-  //   });
-  // }
-  const [qc] = React.useState(() => new QueryClient());
-  queryClient = qc;
+  if (typeof window !== "undefined") {
+    const [qc] = React.useState(() => new QueryClient());
+    queryClient = qc;
+  } else {
+    queryClient = new QueryClient();
+    queryClient.setDefaultOptions({
+      queries: {
+        staleTime: 1000 * 10,
+      },
+    });
+  }
   useScrollRestoration(props.router);
 
   const getLayout =
@@ -59,14 +57,17 @@ export default function MyApp(props: MyAppProps) {
   return (
     <CacheProvider value={emotionCache}>
       <Head>
-        <meta name="viewport" content="initial-scale=1, width=device-width" />
+        <meta
+          name="viewport"
+          content="minimum-scale=1, initial-scale=1, width=device-width, shrink-to-fit=no, user-scalable=no, viewport-fit=cover"
+        />
       </Head>
       <QueryClientProvider client={queryClient}>
         <Hydrate state={pageProps.dehydratedState}>
           <DefaultThemeProvider>
             <BrandingProvider>
               <SnackbarProvider maxSnack={3}>
-                <NextNProgress />
+                <NextNProgress showOnShallow={false} />
                 {getLayout(<Component {...pageProps} />)}
               </SnackbarProvider>
             </BrandingProvider>

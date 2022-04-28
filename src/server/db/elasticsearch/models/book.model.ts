@@ -2,9 +2,12 @@ import { ElasticsearchService as NestElasticsearchService } from "@nestjs/elasti
 import {
   GetResponse,
   IndexResponse,
+  SearchCompletionSuggestOption,
   SearchHit,
   SearchRequest,
   SearchResponse,
+  SearchSuggest,
+  SearchSuggestOption,
   SearchTotalHits,
   UpdateResponse,
 } from "@elastic/elasticsearch/api/types";
@@ -96,6 +99,14 @@ export class BookModel {
 
   public static hitsToClient(hits: SearchHit<BookSource>[]): BookForClient[] {
     return hits.map((x) =>
+      BookModel.toClient(x._index, x._id as string, x._source as BookSource)
+    );
+  }
+
+  public static complectionSuggestOptionsToClient(
+    xs: SearchCompletionSuggestOption<BookSource>[]
+  ): BookForClient[] {
+    return xs.map((x) =>
       BookModel.toClient(x._index, x._id as string, x._source as BookSource)
     );
   }

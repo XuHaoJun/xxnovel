@@ -21,6 +21,7 @@ import { BooksService } from "./books.service";
 import { QueryPaginationRange } from "./dto/search.dto";
 import { GetBookChunkByBookIdAndIdxParams } from "./dto/bookChunk.dto";
 import { BookChunkForClient } from "../../db/elasticsearch/models/bookChunk.model";
+import { BookForClient } from "src/server/db/elasticsearch/models/book.model";
 
 @Controller({ version: ["1", VERSION_NEUTRAL] })
 export class BooksControllerV1 {
@@ -76,13 +77,8 @@ export class BooksControllerV1 {
   @Get("/title-suggests")
   public async getTitleSuggests(
     @Query("prefix") prefix: string
-  ): Promise<Array<string>> {
-    const resp = await this.booksService.getTitleSuggests(prefix);
-    return _.flatten(
-      resp.body.suggest?.titleSuggests.map((x) =>
-        x.options.map((xx) => xx.text)
-      )
-    );
+  ): Promise<Array<BookForClient>> {
+    return this.booksService.getTitleSuggests(prefix);
   }
 
   @Get("/crawle")

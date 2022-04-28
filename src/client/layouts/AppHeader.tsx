@@ -26,10 +26,15 @@ import {
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import Link from "../components/Link/Link";
+import NextLink from "next/link";
 import suggestParse from "autosuggest-highlight/parse";
 import suggestMatch from "autosuggest-highlight/match";
 import { useBookTitleSuggests } from "../queries/book";
 import { useDebounce } from "usehooks-ts";
+import BookIcon from "@mui/icons-material/Book";
+import * as pageHrefs from "src/client/pageHrefs";
+import { useRouter } from "next/router";
+import { Book } from "src/shared/types/models";
 
 const Header = styled("header")(({ theme }) => ({
   position: "sticky",
@@ -95,6 +100,8 @@ export default function AppHeader({
   const changeTheme = useChangeTheme();
   const theme = useTheme();
 
+  const router = useRouter();
+
   const [mode, setMode] = React.useState<string | null>(null);
   const prefersDarkMode = useMediaQuery("(prefers-color-scheme: dark)");
 
@@ -110,7 +117,7 @@ export default function AppHeader({
   const trigger = useScrollTrigger();
 
   const [acInputValue, setAcInputValue] = React.useState("");
-  const debounceAcInputValue = useDebounce(acInputValue, 350);
+  const debounceAcInputValue = useDebounce(acInputValue, 250);
   const { bookTitleSuggests } = useBookTitleSuggests(debounceAcInputValue);
 
   return (
@@ -141,14 +148,31 @@ export default function AppHeader({
             size="small"
             disableClearable
             freeSolo
-            onChange={(e, v) => {
+            blurOnSelect
+            onChange={async (
+              e: React.SyntheticEvent,
+              option: Book | string
+            ) => {
               e.preventDefault();
+              if (typeof option !== "string") {
+                await router.push(pageHrefs.book(option));
+                setAcInputValue("");
+              } else {
+                console.log("option", option);
+              }
             }}
-            options={bookTitleSuggests || []}
+            options={bookTitleSuggests}
             onInputChange={(event, newAcInputValue) => {
               setAcInputValue(newAcInputValue);
             }}
-            getOptionLabel={(option) => (option ? option : "")}
+            inputValue={acInputValue}
+            getOptionLabel={(option: Book | string) => {
+              if (typeof option === "string") {
+                return option;
+              } else {
+                return option.title || "";
+              }
+            }}
             sx={{ width: 400 }}
             renderInput={(params) => {
               return (
@@ -164,23 +188,36 @@ export default function AppHeader({
               );
             }}
             renderOption={(props, option, { inputValue }) => {
-              const matches = suggestMatch(option, inputValue);
-              const parts = suggestParse(option, matches);
+              const matches = suggestMatch(option.title || "", inputValue);
+              const parts = suggestParse(option.title || "", matches);
 
               return (
                 <li {...props}>
-                  <Box>
-                    {parts.map((part, index) => (
-                      <span
-                        key={index}
-                        style={{
-                          fontWeight: part.highlight ? 900 : 400,
-                        }}
-                      >
-                        {part.text}
-                      </span>
-                    ))}
-                  </Box>
+                  <Box
+                    component={BookIcon}
+                    sx={{
+                      flexShrink: 0,
+                      mr: 1,
+                      mt: "2px",
+                    }}
+                  />
+                  {parts.map((part, index) => (
+                    <Typography
+                      variant="subtitle1"
+                      key={index}
+                      sx={{
+                        fontWeight: part.highlight ? 900 : 400,
+                      }}
+                    >
+                      {part.text}
+                    </Typography>
+                  ))}
+                  <Typography
+                    variant="caption"
+                    sx={{ marginLeft: 1, marginRight: 1 }}
+                  >
+                    {option.authorName}
+                  </Typography>
                 </li>
               );
             }}

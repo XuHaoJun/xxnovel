@@ -59,7 +59,9 @@ export async function getBookChunk(
 
 export async function getBookTitleSuggests(
   prefix: string
-): Promise<Array<string>> {
+): Promise<
+  Array<Book>
+> {
   return (
     await axios.get(ROUTE_PATHS.getBookTitleSuggests(), {
       params: { prefix },

@@ -72,7 +72,7 @@ export const useInfiniteBookChunks = (
 };
 
 export const useBookTitleSuggests = (prefix: string) => {
-  const { data: bookTitleSuggests, ...queryOthers } = useQuery(
+  const { data, ...queryOthers } = useQuery(
     BOOK_QKEYS.getBookTitleSuggests(prefix),
     () => getBookTitleSuggests(prefix),
     {
@@ -80,5 +80,5 @@ export const useBookTitleSuggests = (prefix: string) => {
       staleTime: 1000 * 60 * 3,
     }
   );
-  return { bookTitleSuggests, queryOthers };
+  return { bookTitleSuggests: data || [], queryOthers };
 };

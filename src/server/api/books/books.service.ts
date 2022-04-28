@@ -14,6 +14,7 @@ import {
   BookSource,
 } from "src/server/db/elasticsearch/models/book.model";
 import {
+  SearchCompletionSuggestOption,
   SearchSuggest,
   SearchTotalHits,
 } from "@elastic/elasticsearch/api/types";
@@ -170,16 +171,17 @@ export class BooksService {
   }
 
   public async getTitleSuggests(prefix: string) {
-    return this.esuc.book.search({
-      _source: [""],
+    const sn = "titleSuggests";
+    const searchResp = await this.esuc.book.search({
+      _source: ["raw.authorName", "raw.title"],
       body: {
         suggest: {
-          titleSuggests: {
+          [sn]: {
             prefix,
             completion: {
               field: "titleSuggest",
               skip_duplicates: true,
-              size: 10,
+              size: 4,
               fuzzy: {
                 fuzziness: "auto",
                 min_length: 1,
@@ -192,6 +194,11 @@ export class BooksService {
         },
       },
     });
+
+    const copts = _.flatten(
+      _.flatten(searchResp.body.suggest?.[sn] || []).map((x) => x.options)
+    ) as SearchCompletionSuggestOption<BookSource>[];
+    return BookModel.complectionSuggestOptionsToClient(copts);
   }
 
   public async getBookChunkByBookIdAndIdx(

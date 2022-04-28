@@ -7,7 +7,7 @@ export default function getBaseURL(): string {
       ? process?.env?.PORT || 3000
       : process?.env?.PORT || 80
   }`;
-  const defaultOriginURL = process.env.API_PROXY || _defaultOriginURL;
+  const defaultOriginURL = process?.env?.API_PROXY || _defaultOriginURL;
   const runtime = detect();
   if (runtime) {
     switch (runtime.type) {
