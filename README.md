@@ -77,6 +77,26 @@ docker push registry.heroku.com/yourAppName/web
 heroku container:release web --app yourAppName
 ```
 
+## git update public dir
+
+only keep one version static files!
+
+backup your next public/ to another place
+
+[How to remove a directory from git repository?](https://stackoverflow.com/questions/6313126/how-to-remove-a-directory-from-git-repository/56140096#56140096)
+
+```bash
+# remove old versions of public/
+git filter-branch --index-filter 'git rm -rf --cached --ignore-unmatch public/' --prune-empty --tag-name-filter cat -- --all
+git for-each-ref --format="%(refname)" refs/original/ | xargs -n 1 git update-ref -d
+rm -Rf .git/logs .git/refs/original
+git gc --prune=all --aggressive
+
+git add public && git commit -m 'new public/'
+git push origin --all --force
+git push origin --tags --force
+```
+
 ## Issues
 
 1. nextjs 12 breaking change nest-next 導致無法 mono, 目前拆分會造成 nextjs image 過大問題(無區分 next 專用 dependencies), 但 runtime memory 不影響
