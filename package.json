@@ -34,6 +34,7 @@
     "@next/bundle-analyzer": "^12.1.5",
     "@next/env": "^12.1.5",
     "@stdlib/error-to-json": "^0.0.7",
+    "ahooks": "^3.3.10",
     "autosuggest-highlight": "^3.2.1",
     "axios": "^0.26.1",
     "cheerio": "^1.0.0-rc.10",
@@ -77,8 +78,7 @@
     "rimraf": "^3.0.2",
     "rxjs": "^7.2.0",
     "source-map-support": "^0.5.21",
-    "swagger-ui-express": "^4.3.0",
-    "usehooks-ts": "^2.5.1"
+    "swagger-ui-express": "^4.3.0"
   },
   "license": "MIT",
   "keywords": [],

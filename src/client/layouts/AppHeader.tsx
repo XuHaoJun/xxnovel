@@ -30,7 +30,7 @@ import NextLink from "next/link";
 import suggestParse from "autosuggest-highlight/parse";
 import suggestMatch from "autosuggest-highlight/match";
 import { useBookTitleSuggests } from "../queries/book";
-import { useDebounce } from "usehooks-ts";
+import { useDebounce } from "ahooks";
 import BookIcon from "@mui/icons-material/Book";
 import * as pageHrefs from "src/client/pageHrefs";
 import { useRouter } from "next/router";
@@ -117,7 +117,7 @@ export default function AppHeader({
   const trigger = useScrollTrigger();
 
   const [acInputValue, setAcInputValue] = React.useState("");
-  const debounceAcInputValue = useDebounce(acInputValue, 250);
+  const debounceAcInputValue = useDebounce(acInputValue, { wait: 300 });
   const { bookTitleSuggests } = useBookTitleSuggests(debounceAcInputValue);
 
   return (
