@@ -7,15 +7,16 @@ ARG ALPINE_VERSION="3.15"
 ## Base Stage
 FROM node:${NODE_VERSION}-alpine${ALPINE_VERSION} AS base-stage
 WORKDIR /app/xxnovel
-RUN apk update && apk --no-cache upgrade musl && apk add --no-cache tzdata curl bash openssh git 
+RUN apk update && apk --no-cache upgrade musl && apk add --no-cache tzdata curl bash openssh git
 
 
 # 
 ## Dependencies Stage
 FROM base-stage AS dependencies-stage
+# for node-gyp build opencc package
+RUN apk add --no-cache build-base python2 python3
 # COPY prepare.js .
-COPY package.json .
-COPY yarn.lock .
+COPY package.json yarn.lock ./
 # 只安裝 production 相關模組，並複製出來，準備給 Release Stage 使用
 RUN yarn install --frozen-lockfile --production
 RUN cp -R node_modules /production_node_modules
@@ -44,10 +45,10 @@ ENV TZ Asia/Taipei
 
 COPY package.json .
 
-# COPY public .
+COPY public public
 
 COPY --from=dependencies-stage /production_node_modules node_modules
-COPY --from=build-stage /inu-sync-adapter/.next .next
+COPY --from=build-stage /app/xxnovel/dist dist
 
 # COPY .env .
 
