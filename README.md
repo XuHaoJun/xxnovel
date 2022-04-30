@@ -13,9 +13,12 @@ Roadmap:
   - [ ] 關鍵句
   - [ ] 關鍵詞
 - [ ] 搜尋支援書本與章節兩種搜尋
-  - [ ] 書本搜尋
+  - [x] 前端儲存搜尋歷史，基於 rxdb
+  - [x] title autocomplete
+  - [x] 書本搜尋
   - [ ] 章節搜尋
-  - [ ] 針對人名進行 weight 調整
+  - [ ] 針對人名進行 weight 調整, 根據人名出現次數做二次的加權
+  - [ ] 動態增加當前書本章節內容搜尋
 - [ ] 左側 menu drawer
   - [ ] 最近瀏覽記錄 - 應以書本做 group, 但第一版簡單章節
   - [ ] 訂閱書本 最新章節顯示
@@ -32,7 +35,6 @@ Roadmap:
   - [x] SSR
   - [x] Infinite scroll(基於 intersection obsever)
   - [x] Infinite scroll 自動變更 url 與記錄正確 restore scroll 位置
-  - [ ] 搜尋功能額外增加當前書本章節內容搜尋
 
 ## dev
 
