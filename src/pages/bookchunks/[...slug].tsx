@@ -32,6 +32,8 @@ import {
   Breakpoint,
   CircularProgress,
   Skeleton,
+  Stack,
+  useTheme,
 } from "@mui/material";
 
 import Accordion, { AccordionProps } from "@mui/material/Accordion";
@@ -73,6 +75,7 @@ const COOKIE_NAMES: { TEXT_SIZE: string } = {
 };
 
 const BookChunkPage: FC<BookChunkPageProps> = (props: BookChunkPageProps) => {
+  const theme = useTheme();
   const router = useRouter();
   const { slug } = router.query;
   const { bookIndex, bookId, idxByCreatedAt } = slugParser(slug);
@@ -174,7 +177,7 @@ const BookChunkPage: FC<BookChunkPageProps> = (props: BookChunkPageProps) => {
     }, [cursor]);
 
     return (
-      <Container maxWidth={maxWidth}>
+      <Container maxWidth={maxWidth} disableGutters>
         <FormControl>
           <FormLabel id="text-size-label">文字大小</FormLabel>
           <RadioGroup
@@ -188,52 +191,60 @@ const BookChunkPage: FC<BookChunkPageProps> = (props: BookChunkPageProps) => {
             <FormControlLabel value="text-md" control={<Radio />} label="中" />
           </RadioGroup>
         </FormControl>
-        {bookChunks?.map((bookChunk, i) => {
-          return (
-            <Paper
-              key={`bookchunk-${i}`}
-              variant="outlined"
-              sx={{ padding: "3rem" }}
-            >
-              <InView
-                as="div"
-                onChange={(titleInView, entry) => {
-                  if (
-                    titleInView &&
-                    typeof bookChunk.idxByCreatedAtAsc === "number" &&
-                    idxByCreatedAt !== bookChunk.idxByCreatedAtAsc
-                  ) {
-                    setCursor(bookChunk.idxByCreatedAtAsc);
-                    const asPath = pageHrefs.bookChunk({
-                      book,
-                      simpleBookChunk: bookChunk,
-                    });
-                    router.replace(asPath, asPath, {
-                      shallow: true,
-                      scroll: false,
-                    });
-                    deleteScrollPos(asPath);
-                  }
+        <Stack spacing={2}>
+          {bookChunks?.map((bookChunk, i) => {
+            return (
+              <Paper
+                key={`bookchunk-${i}`}
+                variant="outlined"
+                elevation={0}
+                sx={{
+                  padding: "3rem",
+                  [theme.breakpoints.down("md")]: {
+                    padding: "1rem",
+                  },
                 }}
               >
-                <Typography variant="h5" sx={{ marginBottom: "2rem" }}>
-                  {bookChunk?.sectionName}
-                </Typography>
-              </InView>
-              {bookChunk?.contentLines?.map((x, i) => {
-                return (
-                  <Typography
-                    key={`contentLines-${i}`}
-                    variant="body1"
-                    sx={{ marginBottom: "2rem", fontSize: `${textRem}rem` }}
-                  >
-                    {x}
+                <InView
+                  as="div"
+                  onChange={(titleInView, entry) => {
+                    if (
+                      titleInView &&
+                      typeof bookChunk.idxByCreatedAtAsc === "number" &&
+                      idxByCreatedAt !== bookChunk.idxByCreatedAtAsc
+                    ) {
+                      setCursor(bookChunk.idxByCreatedAtAsc);
+                      const asPath = pageHrefs.bookChunk({
+                        book,
+                        simpleBookChunk: bookChunk,
+                      });
+                      router.replace(asPath, asPath, {
+                        shallow: true,
+                        scroll: false,
+                      });
+                      deleteScrollPos(asPath);
+                    }
+                  }}
+                >
+                  <Typography variant="h5" sx={{ marginBottom: "2rem" }}>
+                    {bookChunk?.sectionName}
                   </Typography>
-                );
-              })}
-            </Paper>
-          );
-        })}
+                </InView>
+                {bookChunk?.contentLines?.map((x, i) => {
+                  return (
+                    <Typography
+                      key={`contentLines-${i}`}
+                      variant="body1"
+                      sx={{ marginBottom: "2rem", fontSize: `${textRem}rem` }}
+                    >
+                      {x}
+                    </Typography>
+                  );
+                })}
+              </Paper>
+            );
+          })}
+        </Stack>
 
         <Paper
           ref={
