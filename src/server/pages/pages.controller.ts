@@ -1,4 +1,12 @@
-import { Controller, Get, Render, UseInterceptors } from "@nestjs/common";
+import { Response } from "express";
+import {
+  Controller,
+  Get,
+  Param,
+  Render,
+  Res,
+  UseInterceptors,
+} from "@nestjs/common";
 import { ParamsInterceptor } from "../params.interceptor";
 import { ConfigInterceptor } from "../config.interceptor";
 
@@ -8,21 +16,38 @@ export class PagesController {
   @Render("index")
   @UseInterceptors(ParamsInterceptor, ConfigInterceptor)
   home() {
-    console.log("hoaisdfiajsdiofj");
-    return "hello";
+    return {};
   }
 
   @Get("about")
   @Render("about")
   @UseInterceptors(ParamsInterceptor, ConfigInterceptor)
-  about() {
+  about(@Res() res: Response) {
     return {};
   }
 
-  @Get(":id")
-  @Render("[id]")
+  @Get("books/:bookIndex/:bookId")
   @UseInterceptors(ParamsInterceptor, ConfigInterceptor)
-  public blogPost() {
-    return {};
+  public book(
+    @Res() res: Response,
+    @Param("bookIndex") bookIndex: string,
+    @Param("bookId") bookId: string
+  ) {
+    return res.render(`books/${bookIndex}/${bookId}`, {
+      slug: [bookIndex, bookId],
+    });
+  }
+
+  @Get("bookchunks/:bookIndex/:bookId/:idx")
+  @UseInterceptors(ParamsInterceptor, ConfigInterceptor)
+  public bookChunk(
+    @Res() res: Response,
+    @Param("bookIndex") bookIndex: string,
+    @Param("bookId") bookId: string,
+    @Param("idx") idx: string
+  ) {
+    return res.render(`bookchunks/${bookIndex}/${bookId}/${idx}`, {
+      slug: [bookIndex, bookId, idx],
+    });
   }
 }
