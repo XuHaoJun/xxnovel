@@ -18,7 +18,7 @@ import _ from "lodash";
 import { Response } from "express";
 
 import { BooksService } from "./books.service";
-import { QueryPaginationRange } from "./dto/search.dto";
+import { QueryPaginationRange, SearchBookReqDto } from "./dto/search.dto";
 import { GetBookChunkByBookIdAndIdxParams } from "./dto/bookChunk.dto";
 import { BookChunkForClient } from "../../db/elasticsearch/models/bookChunk.model";
 import { BookForClient } from "src/server/db/elasticsearch/models/book.model";
@@ -35,6 +35,7 @@ export class BooksControllerV1 {
   @Get("/latests")
   @UsePipes(
     new ValidationPipe({
+      whitelist: true,
       forbidNonWhitelisted: true,
       forbidUnknownValues: true,
       transform: true,
@@ -56,12 +57,13 @@ export class BooksControllerV1 {
   @Post("/search")
   @UsePipes(
     new ValidationPipe({
+      whitelist: true,
       forbidNonWhitelisted: true,
       forbidUnknownValues: true,
       transform: true,
     })
   )
-  public async search(@Body() body: QueryPaginationRange) {
+  public async search(@Body() body: SearchBookReqDto) {
     const defaultRange = { offset: 0, limit: 100 };
     const { offset, limit } = _.defaults(
       { offset: body.offset, limit: body.limit },
@@ -70,7 +72,7 @@ export class BooksControllerV1 {
     if (offset + limit > 10000) {
       throw new BadRequestException("offset + limit  > 10000");
     } else {
-      return this.booksService.search({ offset, limit });
+      return this.booksService.search({ ...body, offset, limit });
     }
   }
 
@@ -113,6 +115,7 @@ export class BooksControllerV1 {
   @Get("/ids/:bookId/chunks-by-idxs/:idxByCreatedAtAsc")
   @UsePipes(
     new ValidationPipe({
+      whitelist: true,
       forbidNonWhitelisted: true,
       forbidUnknownValues: true,
       transform: true,

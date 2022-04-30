@@ -3,6 +3,7 @@ import { enableMapSet } from "immer";
 enableMapSet();
 
 import { SnackbarProvider } from "notistack";
+import { Provider as RxDbProvider } from "rxdb-hooks";
 
 import * as React from "react";
 import Head from "next/head";
@@ -21,6 +22,8 @@ import moment from "moment";
 import "moment/locale/zh-tw"; // without this line it didn't work
 import DefaultLayout from "src/client/layouts/DefaultLayout";
 import { useScrollRestoration } from "src/client/hooks/useScrollRestoration";
+import { createDb } from "src/client/db/createDb";
+import { PromiseType } from "utility-types";
 moment.locale("zh-tw");
 
 // Client-side cache, shared for the whole session of the user in the browser.
@@ -49,6 +52,20 @@ export default function MyApp(props: MyAppProps) {
       },
     });
   }
+
+  const [mainDb, setMainDb] =
+    React.useState<PromiseType<ReturnType<typeof createDb>>>(undefined);
+
+  React.useEffect(() => {
+    const initDB = async () => {
+      const _db = await createDb();
+      if (_db) {
+        setMainDb(_db);
+      }
+    };
+    initDB();
+  }, []);
+
   useScrollRestoration(props.router);
 
   const getLayout =
@@ -66,10 +83,12 @@ export default function MyApp(props: MyAppProps) {
         <Hydrate state={pageProps.dehydratedState}>
           <DefaultThemeProvider>
             <BrandingProvider>
-              <SnackbarProvider maxSnack={3}>
-                <NextNProgress showOnShallow={false} />
-                {getLayout(<Component {...pageProps} />)}
-              </SnackbarProvider>
+              <RxDbProvider db={mainDb}>
+                <SnackbarProvider maxSnack={3}>
+                  <NextNProgress showOnShallow={false} />
+                  {getLayout(<Component {...pageProps} />)}
+                </SnackbarProvider>
+              </RxDbProvider>
             </BrandingProvider>
           </DefaultThemeProvider>
         </Hydrate>

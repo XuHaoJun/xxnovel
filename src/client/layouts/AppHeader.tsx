@@ -32,9 +32,17 @@ import suggestMatch from "autosuggest-highlight/match";
 import { useBookTitleSuggests } from "../queries/book";
 import { useDebounce } from "ahooks";
 import BookIcon from "@mui/icons-material/Book";
+import HistoryIcon from "@mui/icons-material/History";
 import * as pageHrefs from "src/client/pageHrefs";
 import { useRouter } from "next/router";
 import { Book } from "src/shared/types/models";
+import { useRxCollection, useRxData } from "rxdb-hooks";
+import { COLLECTION_NAMES } from "../db/collectionNames";
+import {
+  ISearchHistoryData,
+  ISearchHistoryDocument,
+} from "src/shared/schemas/SearchHistoryJSchema";
+import { SearchHistoryModel } from "../db/models/SearchHistoryModel";
 
 const Header = styled("header")(({ theme }) => ({
   position: "sticky",
@@ -88,6 +96,27 @@ const AppBar = styled(MuiAppBar, {
 
 const NOTHING = () => {};
 
+type IAcOption = IAcTitleSuggestOption | IAcSearchHistoryOption;
+
+interface IAcOptionBase {
+  text: string;
+}
+
+enum AcType {
+  titleSuggest = "titleSuggest",
+  searchHistory = "searchHistory",
+}
+
+interface IAcTitleSuggestOption extends IAcOptionBase {
+  type: AcType.titleSuggest;
+  payload: Book;
+}
+
+interface IAcSearchHistoryOption extends IAcOptionBase {
+  type: AcType.searchHistory;
+  payload: ISearchHistoryDocument;
+}
+
 export default function AppHeader({
   open,
   openDrawer,
@@ -119,6 +148,38 @@ export default function AppHeader({
   const [acInputValue, setAcInputValue] = React.useState("");
   const debounceAcInputValue = useDebounce(acInputValue, { wait: 300 });
   const { bookTitleSuggests } = useBookTitleSuggests(debounceAcInputValue);
+  const ashCollection = useRxCollection<ISearchHistoryData>(
+    COLLECTION_NAMES.searchHistory
+  );
+  const { result: searchHistory } = useRxData<ISearchHistoryDocument>(
+    COLLECTION_NAMES.searchHistory,
+    (collection) => {
+      return collection.find({
+        selector: {},
+        sort: [
+          {
+            createdAt: "desc",
+          },
+        ],
+        limit: 5,
+      });
+    }
+  );
+  const acOptions = React.useMemo<IAcOption[]>(() => {
+    const tss: IAcTitleSuggestOption[] =
+      bookTitleSuggests?.map((x) => ({
+        payload: x,
+        text: x.title || "",
+        type: AcType.titleSuggest,
+      })) || [];
+    const sss: IAcSearchHistoryOption[] =
+      searchHistory?.map((x) => ({
+        payload: x,
+        text: x.text || "",
+        type: AcType.searchHistory,
+      })) || [];
+    return [...tss, ...sss];
+  }, [bookTitleSuggests, searchHistory]);
 
   return (
     <Slide
@@ -126,7 +187,7 @@ export default function AppHeader({
       direction="down"
       in={autoHideHeader ? !trigger : true}
     >
-      <AppBar position="sticky" open={open}>
+      <AppBar position="sticky" open={open} color="inherit">
         <Toolbar>
           <IconButton
             aria-label="open drawer"
@@ -151,26 +212,38 @@ export default function AppHeader({
             blurOnSelect
             onChange={async (
               e: React.SyntheticEvent,
-              option: Book | string
+              option: IAcOption | string
             ) => {
               e.preventDefault();
-              if (typeof option !== "string") {
-                await router.push(pageHrefs.book(option));
+              if (
+                typeof option !== "string" &&
+                option.type === AcType.titleSuggest
+              ) {
+                await router.push(pageHrefs.book(option.payload));
                 setAcInputValue("");
               } else {
-                console.log("option", option);
+                if (typeof option === "string") {
+                  if (option.length > 0) {
+                    const newDoc = await SearchHistoryModel.createData(option);
+                    if (ashCollection) {
+                      await SearchHistoryModel.addOne(ashCollection, newDoc);
+                    }
+                  }
+                } else {
+                  SearchHistoryModel.updateCreatedAt(option.payload);
+                }
               }
             }}
-            options={bookTitleSuggests}
+            options={acOptions}
             onInputChange={(event, newAcInputValue) => {
               setAcInputValue(newAcInputValue);
             }}
             inputValue={acInputValue}
-            getOptionLabel={(option: Book | string) => {
+            getOptionLabel={(option: IAcOption | string) => {
               if (typeof option === "string") {
                 return option;
               } else {
-                return option.title || "";
+                return option.text;
               }
             }}
             sx={{ width: 400 }}
@@ -188,19 +261,30 @@ export default function AppHeader({
               );
             }}
             renderOption={(props, option, { inputValue }) => {
-              const matches = suggestMatch(option.title || "", inputValue);
-              const parts = suggestParse(option.title || "", matches);
+              const matches = suggestMatch(option.text || "", inputValue);
+              const parts = suggestParse(option.text || "", matches);
 
-              return (
-                <li {...props}>
+              const OptionTypeIcon = ({ acType }: { acType: AcType }) => {
+                const iconMapping = {
+                  [AcType.searchHistory]: HistoryIcon,
+                  [AcType.titleSuggest]: BookIcon,
+                };
+                const component = iconMapping[acType] || BookIcon;
+                return (
                   <Box
-                    component={BookIcon}
+                    component={component}
                     sx={{
                       flexShrink: 0,
                       mr: 1,
                       mt: "2px",
                     }}
                   />
+                );
+              };
+
+              return (
+                <li {...props}>
+                  <OptionTypeIcon acType={option.type} />
                   {parts.map((part, index) => (
                     <Typography
                       variant="subtitle1"
@@ -212,12 +296,14 @@ export default function AppHeader({
                       {part.text}
                     </Typography>
                   ))}
-                  <Typography
-                    variant="caption"
-                    sx={{ marginLeft: 1, marginRight: 1 }}
-                  >
-                    {option.authorName}
-                  </Typography>
+                  {option.type === AcType.titleSuggest && (
+                    <Typography
+                      variant="caption"
+                      sx={{ marginLeft: 1, marginRight: 1 }}
+                    >
+                      {option.payload.authorName}
+                    </Typography>
+                  )}
                 </li>
               );
             }}

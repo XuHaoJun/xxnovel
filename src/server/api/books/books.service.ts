@@ -25,13 +25,16 @@ import {
 } from "src/server/db/elasticsearch/models/bookChunk.model";
 import type { IPaginationResponse } from "src/shared/types/apiResponse";
 import produce from "immer";
-import { QueryPaginationRange, SearchBookDto } from "./dto/search.dto";
+import { QueryPaginationRange, SearchBookReqDto } from "./dto/search.dto";
+import { XxHanlpService } from "src/server/lib/xxhanlp/nest/xxhanlp.service";
+import { NerMsraTag } from "src/server/lib/xxhanlp/XxHanlpClient";
 
 @Injectable()
 export class BooksService {
   constructor(
     private readonly esuc: ElasticsearchUsecase,
-    private readonly crawlerService: CrawlerService
+    private readonly crawlerService: CrawlerService,
+    private readonly xxHanlpService: XxHanlpService
   ) {}
 
   public async getThumbStream(params: { index: string; id: string }) {
@@ -161,14 +164,82 @@ export class BooksService {
     };
   }
 
-  public async search(body: SearchBookDto) {
+  public async search(body: SearchBookReqDto) {
     const size = body.limit;
     const from = body.offset;
+    const toksText = body.text;
+    const anaResult = await this.xxHanlpService.analysis(toksText);
+    const ners = _.flatten(anaResult.ner_msra);
+    const personNames: Array<string> = [];
+    for (const ner of ners) {
+      if (ner.ner === NerMsraTag.Person) {
+        personNames.push(ner.tok);
+      }
+    }
+    const terms = _.flatten(anaResult.tok_fine);
+    const must = [];
+    if (body.categories) {
+      must.push({
+        terms: {
+          category: body.categories,
+        },
+      });
+    }
+    const finalMust = must.length > 0 ? must : undefined;
+    const query = {
+      bool: {
+        ...(finalMust ? { must: finalMust } : undefined),
+        should: [
+          {
+            terms: {
+              title: terms,
+              boost: 3.5,
+            },
+          },
+          {
+            terms: {
+              personNames: terms,
+              boost: 2.0,
+            },
+          },
+          {
+            terms: {
+              authorName: terms,
+              boost: 2.0,
+            },
+          },
+          {
+            terms: {
+              description: terms,
+            },
+          },
+        ],
+      },
+    };
+    const highlight = {
+      fields: {
+        description: {
+          number_of_fragments: 3,
+          fragment_size: 50,
+        },
+        title: {
+          number_of_fragments: 1,
+          fragment_size: 50,
+        },
+        authorName: {
+          number_of_fragments: 1,
+          fragment_size: 50,
+        },
+      },
+    };
     return this.esuc.book.search({
       size,
       from,
+      body: { query, highlight },
     });
   }
+
+  public async searchChunks() {}
 
   public async getTitleSuggests(prefix: string) {
     const sn = "titleSuggests";

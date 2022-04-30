@@ -1,5 +1,15 @@
 import { Transform } from "class-transformer";
-import { IsPositive, IsNotEmpty, IsOptional, Min } from "class-validator";
+import {
+  IsPositive,
+  IsNotEmpty,
+  IsOptional,
+  Min,
+  IsDefined,
+  IsString,
+  MinLength,
+  MaxLength,
+  IsArray,
+} from "class-validator";
 
 import type { IQueryPaginationRange } from "src/shared/types/apiResponse";
 
@@ -17,4 +27,17 @@ export class QueryPaginationRange implements IQueryPaginationRange {
   limit?: number;
 }
 
-export class SearchBookDto extends QueryPaginationRange {}
+export class SearchBookReqDto extends QueryPaginationRange {
+  @IsString()
+  @MinLength(1)
+  @MaxLength(50)
+  @IsDefined()
+  text!: string;
+
+  @IsString({ each: true })
+  @IsNotEmpty()
+  @MinLength(1)
+  @IsArray()
+  @IsOptional()
+  categories?: Array<string>;
+}
