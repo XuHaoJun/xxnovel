@@ -12,15 +12,24 @@ const axios = getApiHttpClient();
 const ROUTE_PATHS = {
   getBook: (bookIndex: string, bookId: string) =>
     `books/indices/${bookIndex}/${bookId}`,
+  searchBook: () => `books/search`,
   getLatestBooks: () => `books/latests`,
   getBookChunk: (bookId: string, idxByCreatedAtAsc: number) =>
     `books/ids/${bookId}/chunks-by-idxs/${idxByCreatedAtAsc}`,
   getBookTitleSuggests: () => `books/title-suggests`,
+  getFullBookThumbUrl: (bookIndex: string, bookId: string) =>
+    `/api/books/indices/${bookIndex}/${bookId}/thumb`,
 };
+
+export const BOOK_ROUTE_PATHS = ROUTE_PATHS;
 
 export const BOOK_QKEYS = {
   getBook: (bookIndex: string, bookId: string) => [
     ROUTE_PATHS.getBook(bookIndex, bookId),
+  ],
+  searchBook: (body: ISearchBookBody) => [
+    ROUTE_PATHS.searchBook(),
+    JSONStringify.stable(body),
   ],
   getLatestBooks: (params?: IQueryPaginationRange) => [
     ROUTE_PATHS.getLatestBooks(),
@@ -35,6 +44,19 @@ export const BOOK_QKEYS = {
     prefix,
   ],
 };
+
+export interface ISearchBookBody {
+  text: string;
+  categories?: Array<string>;
+}
+
+export interface ISearchBookResponseBody {}
+
+export async function searchBook(
+  body: ISearchBookBody
+): Promise<IPaginationResponse<Book>> {
+  return (await axios.post(ROUTE_PATHS.searchBook(), body)).data;
+}
 
 export async function getBook(
   bookIndex: string,
@@ -59,9 +81,7 @@ export async function getBookChunk(
 
 export async function getBookTitleSuggests(
   prefix: string
-): Promise<
-  Array<Book>
-> {
+): Promise<Array<Book>> {
   return (
     await axios.get(ROUTE_PATHS.getBookTitleSuggests(), {
       params: { prefix },

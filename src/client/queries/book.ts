@@ -6,6 +6,8 @@ import {
   getBookChunk,
   getBookTitleSuggests,
   getLatestBooks,
+  searchBook,
+  ISearchBookBody,
 } from "../services/book";
 
 export const useBook = (bookIndex: string, bookId: string) => {
@@ -17,7 +19,7 @@ export const useBook = (bookIndex: string, bookId: string) => {
 };
 
 export const useLatestBooks = (page: number = 0) => {
-  const size = 50;
+  const size = 100;
   const offset = size * page;
   const limit = size;
   const { data: latestBooks, ...queryOthers } = useQuery(
@@ -77,8 +79,18 @@ export const useBookTitleSuggests = (prefix: string) => {
     () => getBookTitleSuggests(prefix),
     {
       enabled: prefix.length > 0,
-      staleTime: 1000 * 60 * 3,
     }
   );
   return { bookTitleSuggests: data || [], queryOthers };
+};
+
+export const useSearchBook = (body: ISearchBookBody) => {
+  const { data, ...queryOthers } = useQuery(
+    BOOK_QKEYS.searchBook(body),
+    () => searchBook(body),
+    {
+      enabled: body.text.length > 0,
+    }
+  );
+  return { bookSearchResult: data, queryOthers };
 };

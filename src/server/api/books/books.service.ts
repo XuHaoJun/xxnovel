@@ -15,6 +15,7 @@ import {
 } from "src/server/db/elasticsearch/models/book.model";
 import {
   SearchCompletionSuggestOption,
+  SearchHighlighterType,
   SearchSuggest,
   SearchTotalHits,
 } from "@elastic/elasticsearch/api/types";
@@ -164,11 +165,13 @@ export class BooksService {
     };
   }
 
-  public async search(body: SearchBookReqDto) {
+  public async search(
+    body: SearchBookReqDto
+  ): Promise<IPaginationResponse<BookChunkForClient>> {
     const size = body.limit;
     const from = body.offset;
-    const toksText = body.text;
-    const anaResult = await this.xxHanlpService.analysis(toksText);
+    const text = body.text;
+    const anaResult = await this.xxHanlpService.analysis(text);
     const ners = _.flatten(anaResult.ner_msra);
     const personNames: Array<string> = [];
     for (const ner of ners) {
@@ -185,11 +188,23 @@ export class BooksService {
         },
       });
     }
+    if (body.status) {
+      must.push({
+        term: {
+          status: body.status,
+        },
+      });
+    }
     const finalMust = must.length > 0 ? must : undefined;
     const query = {
       bool: {
         ...(finalMust ? { must: finalMust } : undefined),
         should: [
+          {
+            fuzzy: {
+              title: { value: text },
+            },
+          },
           {
             terms: {
               title: terms,
@@ -216,27 +231,37 @@ export class BooksService {
         ],
       },
     };
-    const highlight = {
-      fields: {
-        description: {
-          number_of_fragments: 3,
-          fragment_size: 50,
-        },
-        title: {
-          number_of_fragments: 1,
-          fragment_size: 50,
-        },
-        authorName: {
-          number_of_fragments: 1,
-          fragment_size: 50,
-        },
-      },
-    };
-    return this.esuc.book.search({
+    // const highlight = {
+    //   fields: {
+    //     description: {
+    //       number_of_fragments: 3,
+    //       fragment_size: 50,
+    //     },
+    //     title: {
+    //       number_of_fragments: 1,
+    //       fragment_size: 50,
+    //     },
+    //     authorName: {
+    //       number_of_fragments: 1,
+    //       fragment_size: 50,
+    //     },
+    //   },
+    // };
+
+    const searchRes = await this.esuc.book.search({
       size,
       from,
-      body: { query, highlight },
+      _source: BooksService.getSimpleFields(),
+      body: {
+        query,
+      },
     });
+
+    const total = (searchRes.body.hits.total as SearchTotalHits).value;
+    return {
+      total,
+      items: BookModel.hitsToClient(searchRes.body.hits.hits),
+    };
   }
 
   public async searchChunks() {}
@@ -246,6 +271,7 @@ export class BooksService {
     const searchResp = await this.esuc.book.search({
       _source: ["raw.authorName", "raw.title"],
       body: {
+        sort: [{ updatedAt: "desc" }],
         suggest: {
           [sn]: {
             prefix,

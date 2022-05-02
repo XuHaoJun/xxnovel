@@ -9,6 +9,7 @@ import {
   MinLength,
   MaxLength,
   IsArray,
+  ArrayMinSize,
 } from "class-validator";
 
 import type { IQueryPaginationRange } from "src/shared/types/apiResponse";
@@ -36,8 +37,13 @@ export class SearchBookReqDto extends QueryPaginationRange {
 
   @IsString({ each: true })
   @IsNotEmpty()
-  @MinLength(1)
+  @ArrayMinSize(1)
   @IsArray()
   @IsOptional()
   categories?: Array<string>;
+
+  @IsString()
+  @IsNotEmpty()
+  @IsOptional()
+  status?: string;
 }

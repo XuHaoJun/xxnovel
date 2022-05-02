@@ -17,10 +17,15 @@ import ImageListItemBar from "@mui/material/ImageListItemBar";
 import Card from "@mui/material/Card";
 import CardContent from "@mui/material/CardContent";
 import CardMedia from "@mui/material/CardMedia";
+import { Alert } from "@mui/material";
 
 import { useLatestBooks } from "../client/queries/book";
 import DefaultLayout from "../client/layouts/DefaultLayout";
-import { BOOK_QKEYS, getLatestBooks } from "src/client/services/book";
+import {
+  BOOK_ROUTE_PATHS,
+  BOOK_QKEYS,
+  getLatestBooks,
+} from "src/client/services/book";
 import * as pageHrefs from "src/client/pageHrefs";
 
 function TitlebarBelowImageList() {
@@ -153,6 +158,10 @@ import { styled } from "@mui/material/styles";
 import { Book } from "src/shared/types/models";
 import { LazyLoadImage } from "react-lazy-load-image-component";
 import { Button } from "@mui/material";
+import {
+  BookThumb,
+  getBookThumbDefaultProps,
+} from "src/client/components/book/BookThumb";
 
 const TimeRowPaper = styled(Paper)(({ theme }) => ({
   padding: theme.spacing(1),
@@ -160,20 +169,10 @@ const TimeRowPaper = styled(Paper)(({ theme }) => ({
 
 const BookItem = (props: { book: Book }) => {
   const { book } = props;
-  const thumbHeight = 162;
-  const thumbWidth = 122;
-  const thumbSrc = `/api/books/indices/${book._index}/${book.id}/thumb`;
-  const BookThumb = (props: any) => {
-    return (
-      <LazyLoadImage
-        {...props}
-        width={thumbWidth}
-        height={thumbHeight}
-        placeholderSrc={thumbSrc}
-        loading="lazy"
-        src={thumbSrc}
-      />
-    );
+  const thumbSrc = BOOK_ROUTE_PATHS.getFullBookThumbUrl(book._index, book.id);
+  const { height: thumbHeight } = getBookThumbDefaultProps();
+  const MyCardMedia = (props: any) => {
+    return <BookThumb {...props} placeholderSrc={thumbSrc} src={thumbSrc} />;
   };
   return (
     <Link href={pageHrefs.book(book)}>
@@ -182,7 +181,7 @@ const BookItem = (props: { book: Book }) => {
         elevation={0}
         square
       >
-        <CardMedia component={BookThumb} />
+        <CardMedia component={MyCardMedia} />
         <Box
           sx={{
             display: "flex",
@@ -199,10 +198,11 @@ const BookItem = (props: { book: Book }) => {
                 css={css`
                   user-select: none;
                   margin: 0 4px;
+                  &:after {
+                    content: "•";
+                  }
                 `}
-              >
-                •
-              </span>
+              />
               {book.authorName}
             </Typography>
             <Typography variant="subtitle1">
@@ -215,10 +215,32 @@ const BookItem = (props: { book: Book }) => {
   );
 };
 
+const DemoAlert = () => {
+  const [demoAlertOpen, setDemoAlertOpen] = React.useState(true);
+  if (!demoAlertOpen) {
+    return null;
+  } else {
+    return (
+      <Alert
+        onClose={() => {
+          setDemoAlertOpen(false);
+        }}
+        variant="filled"
+        severity="info"
+      >
+        demo
+        使用，目前網站與資料庫皆為使用免費方案，流量與空間皆有限制，所以僅有幾本書與內容僅有前六章節和最新六章節。
+      </Alert>
+    );
+  }
+};
+
 const Home: NextPage = (props: any) => {
   const { latestBooks } = useLatestBooks();
+
   return (
     <Container maxWidth="lg">
+      <DemoAlert />
       <Grid container spacing={2}>
         {latestBooks?.items.map((book: Book, i: number, ary: Array<Book>) => {
           const prevBook = ary[i - 1];
