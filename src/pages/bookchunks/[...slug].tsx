@@ -152,6 +152,10 @@ const BookChunkPage: FC<BookChunkPageProps> = (props: BookChunkPageProps) => {
                 variant: "info",
               });
             }
+          } else if (!infiniteBookChunksQueryOthers.hasNextPage) {
+              enqueueSnackbar(`無最新章節(TODO-增加更新 button 在 skelton)`, {
+                variant: "info",
+              });
           }
         }
       };
