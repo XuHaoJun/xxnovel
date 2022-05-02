@@ -4,6 +4,7 @@ import type {
   ISearchHistoryDocument,
 } from "src/shared/schemas/SearchHistoryJSchema";
 
+// move to rxdb methods?
 export class SearchHistoryModel {
   public static readonly MAX_SIZE = 50;
 
@@ -31,7 +32,14 @@ export class SearchHistoryModel {
     shCol: RxCollection<ISearchHistoryData>,
     newdDoc: ISearchHistoryData
   ): Promise<void> {
-    await shCol.atomicUpsert(newdDoc);
+    await shCol
+      .find({
+        selector: {
+          text: newdDoc.text,
+        },
+      })
+      .remove();
+    await shCol.insert(newdDoc);
     const docs = await shCol
       .find({
         selector: {},
@@ -49,5 +57,18 @@ export class SearchHistoryModel {
           .map((x) => x.id as string)
       );
     }
+  }
+
+  public static async removeOne(
+    shCol: RxCollection<ISearchHistoryData>,
+    id: string
+  ) {
+    return shCol
+      .findOne({
+        selector: {
+          id,
+        },
+      })
+      ?.remove();
   }
 }

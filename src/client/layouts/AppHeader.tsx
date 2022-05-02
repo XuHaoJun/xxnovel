@@ -23,6 +23,7 @@ import {
   Paper,
   Autocomplete,
   TextField,
+  createFilterOptions,
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import Link from "../components/Link/Link";
@@ -43,6 +44,7 @@ import {
   ISearchHistoryDocument,
 } from "src/shared/schemas/SearchHistoryJSchema";
 import { SearchHistoryModel } from "../db/models/SearchHistoryModel";
+import ClearIcon from "@mui/icons-material/Clear";
 
 const Header = styled("header")(({ theme }) => ({
   position: "sticky",
@@ -146,7 +148,11 @@ export default function AppHeader({
   const trigger = useScrollTrigger();
 
   const [acInputValue, setAcInputValue] = React.useState("");
-  const debounceAcInputValue = useDebounce(acInputValue, { wait: 300 });
+  const debounceAcInputValue = useDebounce(acInputValue, {
+    wait: 300,
+    trailing: true,
+    leading: true,
+  });
   const { bookTitleSuggests } = useBookTitleSuggests(debounceAcInputValue);
   const ashCollection = useRxCollection<ISearchHistoryData>(
     COLLECTION_NAMES.searchHistory
@@ -210,28 +216,41 @@ export default function AppHeader({
             disableClearable
             freeSolo
             blurOnSelect
+            filterOptions={(xs, state) => {
+              const defaultFilter = createFilterOptions<IAcOption>();
+              return xs.filter((x) => {
+                if (x.type === AcType.searchHistory) {
+                  return defaultFilter([x], state)[0];
+                } else {
+                  return x;
+                }
+              });
+            }}
             onChange={async (
               e: React.SyntheticEvent,
               option: IAcOption | string
             ) => {
               e.preventDefault();
-              if (
-                typeof option !== "string" &&
-                option.type === AcType.titleSuggest
-              ) {
+              if (typeof option === "string") {
+                if (option.length > 0) {
+                  const newDoc = await SearchHistoryModel.createData(option);
+                  if (ashCollection) {
+                    SearchHistoryModel.addOne(ashCollection, newDoc);
+                  }
+                  await router.push(pageHrefs.search(option));
+                  setAcInputValue(option);
+                }
+              } else if (option.type === AcType.titleSuggest) {
+                // const newDoc = await SearchHistoryModel.createData(option.text);
+                // if (ashCollection) {
+                //   SearchHistoryModel.addOne(ashCollection, newDoc);
+                // }
                 await router.push(pageHrefs.book(option.payload));
                 setAcInputValue("");
               } else {
-                if (typeof option === "string") {
-                  if (option.length > 0) {
-                    const newDoc = await SearchHistoryModel.createData(option);
-                    if (ashCollection) {
-                      await SearchHistoryModel.addOne(ashCollection, newDoc);
-                    }
-                  }
-                } else {
-                  SearchHistoryModel.updateCreatedAt(option.payload);
-                }
+                SearchHistoryModel.updateCreatedAt(option.payload);
+                await router.push(pageHrefs.search(option.text));
+                setAcInputValue(option.text);
               }
             }}
             options={acOptions}
@@ -282,13 +301,15 @@ export default function AppHeader({
                 );
               };
 
+              const liKey = `${option.type}-${option.text}-${option.payload.id}`;
+
               return (
-                <li {...props}>
+                <li {...props} key={liKey}>
                   <OptionTypeIcon acType={option.type} />
                   {parts.map((part, index) => (
                     <Typography
+                      key={`${liKey}-${index}`}
                       variant="subtitle1"
-                      key={index}
                       sx={{
                         fontWeight: part.highlight ? 900 : 400,
                       }}
@@ -303,6 +324,31 @@ export default function AppHeader({
                     >
                       {option.payload.authorName}
                     </Typography>
+                  )}
+                  {option.type === AcType.searchHistory && (
+                    <Box
+                      sx={{
+                        display: "flex",
+                        justifyContent: "flex-end",
+                        flex: "1 0 auto",
+                      }}
+                    >
+                      <IconButton
+                        component="span"
+                        onClick={(e: React.MouseEvent<HTMLElement>) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          if (ashCollection && option.payload.id) {
+                            SearchHistoryModel.removeOne(
+                              ashCollection,
+                              option.payload.id
+                            );
+                          }
+                        }}
+                      >
+                        <ClearIcon />
+                      </IconButton>
+                    </Box>
                   )}
                 </li>
               );
