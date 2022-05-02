@@ -167,7 +167,7 @@ export class BooksService {
 
   public async search(
     body: SearchBookReqDto
-  ): Promise<IPaginationResponse<BookChunkForClient>> {
+  ): Promise<IPaginationResponse<BookForClient>> {
     const size = body.limit;
     const from = body.offset;
     const text = body.text;

@@ -2,8 +2,8 @@ import type { ParsedUrlQueryInput } from "node:querystring";
 import type { Book, ISimpleBookChunk } from "src/shared/types/models";
 import { ISearchBookBody } from "./services/book";
 
-export function book(book: Pick<Book, "_index" | "id"> | undefined) {
-  return `/books/${book?._index}/${book?.id}`;
+export function book(book: Pick<Book, "esIndex" | "id"> | undefined) {
+  return `/books/${book?.esIndex}/${book?.id}`;
 }
 
 export function bookChunk({
@@ -13,7 +13,7 @@ export function bookChunk({
   book: Book | undefined;
   simpleBookChunk: ISimpleBookChunk | undefined;
 }): string {
-  return `/bookchunks/${book?._index}/${book?.id}/${simpleBookChunk?.idxByCreatedAtAsc}`;
+  return `/bookchunks/${book?.esIndex}/${book?.id}/${simpleBookChunk?.idxByCreatedAtAsc}`;
 }
 
 export function search(body: ISearchBookBody & ParsedUrlQueryInput) {

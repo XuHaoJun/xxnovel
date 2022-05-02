@@ -169,7 +169,7 @@ const TimeRowPaper = styled(Paper)(({ theme }) => ({
 
 const BookItem = (props: { book: Book }) => {
   const { book } = props;
-  const thumbSrc = BOOK_ROUTE_PATHS.getFullBookThumbUrl(book._index, book.id);
+  const thumbSrc = BOOK_ROUTE_PATHS.getFullBookThumbUrl(book.esIndex, book.id);
   const { height: thumbHeight } = getBookThumbDefaultProps();
   const MyCardMedia = (props: any) => {
     return <BookThumb {...props} placeholderSrc={thumbSrc} src={thumbSrc} />;

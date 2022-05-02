@@ -1,4 +1,4 @@
-import type { RxDocument } from "rxdb";
+import type { RxDocument, RxJsonSchema } from "rxdb";
 
 export interface ISearchHistoryData {
   id?: string;
@@ -8,7 +8,7 @@ export interface ISearchHistoryData {
 
 export type ISearchHistoryDocument = RxDocument<ISearchHistoryData>;
 
-export const SearchHistoryJSchema = {
+export const SearchHistoryJSchema: RxJsonSchema<any> = {
   title: "search history",
   version: 0,
   primaryKey: "id",
@@ -26,6 +26,6 @@ export const SearchHistoryJSchema = {
       type: "date-time",
     },
   },
-  required: ["id"],
+  required: ["id", "createdAt"],
   indexes: ["createdAt"],
 } as const;

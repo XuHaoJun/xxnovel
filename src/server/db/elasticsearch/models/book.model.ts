@@ -33,7 +33,7 @@ import moment from "moment";
 import { $PropertyType } from "utility-types";
 
 export interface ISimpleBookChunk extends Crawler.IBookChunk {
-  _index?: string;
+  esIndex?: string;
   idxByCreatedAtAsc?: number;
   id?: string;
 }
@@ -57,7 +57,7 @@ export interface BookSource
 }
 
 export interface BookForClient extends Omit<BookSource, "raw" | "description"> {
-  _index: string;
+  esIndex: string;
   id: string;
   descriptionLines?: Array<string>;
 }
@@ -79,7 +79,7 @@ export class BookModel {
     bookSource?: BookSource
   ): BookForClient {
     const bookDoc: BookForClient = {
-      _index,
+      esIndex: _index,
       id,
       ..._.omit(bookSource || {}, "raw"),
     };

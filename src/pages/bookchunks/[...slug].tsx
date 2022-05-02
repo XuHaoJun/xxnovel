@@ -55,8 +55,12 @@ import { Book } from "src/shared/types/models";
 import { useChangeLayout } from "src/client/layouts/DefaultLayout";
 import * as pageHrefs from "src/client/pageHrefs";
 import { deleteScrollPos } from "src/client/hooks/useScrollRestoration";
+import { useRxCollection } from "rxdb-hooks";
+import { COLLECTION_NAMES } from "src/client/db/collectionNames";
+import { ViewBookChunkHistoryModel } from "src/client/db/models/ViewBookChunkHistoryModel";
+import type { IViewBookChunkHistoryData } from "src/shared/schemas/ViewBookChunkHistoryJSchema";
 
-function slugParser(slug?: Array<string> | string) {
+function parseSlug(slug?: Array<string> | string) {
   if (_.isArray(slug)) {
     const [bookIndex, bookId, _idxByCreatedAt] = slug || [];
     const idxByCreatedAt = parseInt(_idxByCreatedAt, 10);
@@ -78,7 +82,7 @@ const BookChunkPage: FC<BookChunkPageProps> = (props: BookChunkPageProps) => {
   const theme = useTheme();
   const router = useRouter();
   const { slug } = router.query;
-  const { bookIndex, bookId, idxByCreatedAt } = slugParser(slug);
+  const { bookIndex, bookId, idxByCreatedAt } = parseSlug(slug);
   if (!bookIndex || !bookId || typeof idxByCreatedAt !== "number") {
     router.push("/");
     return <div>incorrect slug redirect to home</div>;
@@ -89,6 +93,27 @@ const BookChunkPage: FC<BookChunkPageProps> = (props: BookChunkPageProps) => {
       idxByCreatedAt,
       book
     );
+
+    const vbchCol = useRxCollection<IViewBookChunkHistoryData>(
+      COLLECTION_NAMES.viewBookChunkHistory
+    );
+    React.useEffect(() => {
+      const upsertHistory = async () => {
+        if (vbchCol && book && bookChunks) {
+          const bookChunk = bookChunks?.find(
+            (x) => x.idxByCreatedAtAsc === idxByCreatedAt
+          );
+          if (bookChunk) {
+            const vbchData = await ViewBookChunkHistoryModel.createData(
+              book,
+              bookChunk
+            );
+            ViewBookChunkHistoryModel.addOne(vbchCol, vbchData);
+          }
+        }
+      };
+      upsertHistory();
+    }, [vbchCol, bookIndex, bookId, idxByCreatedAt, bookChunks]);
 
     const changeLayout = useChangeLayout();
     React.useEffect(() => {
@@ -153,9 +178,9 @@ const BookChunkPage: FC<BookChunkPageProps> = (props: BookChunkPageProps) => {
               });
             }
           } else if (!infiniteBookChunksQueryOthers.hasNextPage) {
-              enqueueSnackbar(`無最新章節(TODO-增加更新 button 在 skelton)`, {
-                variant: "info",
-              });
+            enqueueSnackbar(`無最新章節(TODO-增加更新 button 在 skelton)`, {
+              variant: "info",
+            });
           }
         }
       };
@@ -293,7 +318,7 @@ export const getServerSideProps = async (
     },
   });
 
-  const { bookIndex, bookId, idxByCreatedAt } = slugParser(ctx.query.slug);
+  const { bookIndex, bookId, idxByCreatedAt } = parseSlug(ctx.query.slug);
   if (!bookIndex || !bookId || typeof idxByCreatedAt !== "number") {
     return {
       notFound: true,

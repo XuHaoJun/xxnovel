@@ -42,7 +42,7 @@ import { routerQueryToSearchBody } from "src/client/utils/search/routerQueryToSe
 
 const BookItem = (props: { book: Book }) => {
   const { book } = props;
-  const thumbSrc = BOOK_ROUTE_PATHS.getFullBookThumbUrl(book._index, book.id);
+  const thumbSrc = BOOK_ROUTE_PATHS.getFullBookThumbUrl(book.esIndex, book.id);
   const bookHref = pageHrefs.book(book);
   const MyCardMedia = (props: any) => {
     return (

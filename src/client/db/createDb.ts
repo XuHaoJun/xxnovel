@@ -1,3 +1,5 @@
+import { BookJSchema } from "src/shared/schemas/BookJSchema";
+import { ViewBookChunkHistoryJSchema } from "src/shared/schemas/ViewBookChunkHistoryJSchema";
 import { SearchHistoryJSchema } from "../../shared/schemas/SearchHistoryJSchema";
 import { COLLECTION_NAMES } from "./collectionNames";
 
@@ -25,9 +27,15 @@ export async function createDb() {
       storage: getRxStoragePouch("idb"),
     });
 
-    db.addCollections({
+    await db.addCollections({
+      [COLLECTION_NAMES.book]: {
+        schema: BookJSchema,
+      },
       [COLLECTION_NAMES.searchHistory]: {
         schema: SearchHistoryJSchema,
+      },
+      [COLLECTION_NAMES.viewBookChunkHistory]: {
+        schema: ViewBookChunkHistoryJSchema,
       },
     });
 

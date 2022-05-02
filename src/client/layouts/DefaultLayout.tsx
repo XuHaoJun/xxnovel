@@ -1,4 +1,5 @@
 import * as React from "react";
+import moment from "moment";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import { styled, useTheme } from "@mui/material/styles";
 import {
@@ -30,6 +31,14 @@ import Main from "./Main";
 import NextLink from "next/link";
 import MyLink from "src/client/components/Link";
 import Link from "src/client/components/Link";
+import { QueryConstructor, useRxCollection, useRxData } from "rxdb-hooks";
+import { COLLECTION_NAMES } from "../db/collectionNames";
+import {
+  IViewBookChunkHistoryData,
+  IViewBookChunkHistoryDocument,
+} from "src/shared/schemas/ViewBookChunkHistoryJSchema";
+import type { RxCollection } from "rxdb";
+import type { IBookData, IBookDocument } from "src/shared/schemas/BookJSchema";
 
 const drawerWidth = 240;
 
@@ -111,6 +120,39 @@ export default function DefaultLayout({
 
   const smMatches = useMediaQuery(theme.breakpoints.up("sm"));
 
+  const vbchQuery = React.useCallback<
+    QueryConstructor<IViewBookChunkHistoryDocument>
+  >((col) => {
+    return col.find({
+      selector: {},
+      sort: [
+        {
+          createdAt: "desc",
+        },
+      ],
+      limit: 5,
+    });
+  }, []);
+  const { result: vbchDocs } = useRxData<IViewBookChunkHistoryDocument>(
+    COLLECTION_NAMES.viewBookChunkHistory,
+    vbchQuery
+  );
+  const bookCol = useRxCollection<IBookData>(COLLECTION_NAMES.book);
+  const [rxBooks, setRxBooks] = React.useState<Map<string, IBookDocument>>(
+    new Map()
+  );
+  React.useEffect(() => {
+    const readRxBooks = async () => {
+      if (bookCol && vbchDocs) {
+        const bookIds = vbchDocs.map((x) => x.bookId);
+        const xs = await bookCol.findByIds(bookIds as Array<string>);
+        console.log(xs);
+        setRxBooks(xs);
+      }
+    };
+    readRxBooks();
+  }, [vbchDocs, bookCol, setRxBooks]);
+
   return (
     <DispatchContext.Provider value={dispatch}>
       <AppHeader
@@ -162,31 +204,30 @@ export default function DefaultLayout({
         </List>
         <Divider />
         <List subheader={<ListSubheader>最近瀏覽</ListSubheader>}>
-          <ListItem button>
-            <ListItemText
-              primary="第一一二六章 舊夢故去 新的旅程"
-              secondary="贅婿 - 2022/04/23"
-            />
-          </ListItem>
-          <ListItem button>
-            <ListItemText
-              primary="第一一二三章 決裂（十）"
-              secondary="贅婿 - 2022/04/22"
-            />
-          </ListItem>
-          <ListItem button>
-            <ListItemText
-              primary="第四百八十五章 別苗頭"
-              secondary="萬相之王 - 2022/04/20"
-            />
-          </ListItem>
+          {vbchDocs.map((x) => {
+            const book = x.bookId ? rxBooks.get(x.bookId) : null;
+            console.log(x);
+            const idx =
+              typeof x?.bookChunkIdxByCreatedAt === "number"
+                ? x?.bookChunkIdxByCreatedAt
+                : -1;
+            const primary = book?.chunks?.[idx]?.sectionName;
+            const secondary = `${book?.title} - ${moment(x.createdAt).format(
+              "yyyy/MM/DD"
+            )}`;
+            return (
+              <ListItem key={x.id} button>
+                <ListItemText primary={primary} secondary={secondary} />
+              </ListItem>
+            );
+          })}
           <ListItemButton>
             <ExpandMore />
-            <ListItemText primary="顯示另外xx個項目" />
+            <ListItemText primary="顯示更多項目" />
           </ListItemButton>
         </List>
         <Divider />
-        <List subheader={<ListSubheader>訂閱書籍</ListSubheader>}>
+        <List subheader={<ListSubheader>訂閱書籍(未完成)</ListSubheader>}>
           <ListItem button>
             <ListItemText
               primary="第四百八十五章 別苗頭"
@@ -205,7 +246,7 @@ export default function DefaultLayout({
           </ListItemButton>
         </List>
         <Divider />
-        <List subheader={<ListSubheader>推薦書籍</ListSubheader>}>
+        <List subheader={<ListSubheader>推薦書籍(未完成)</ListSubheader>}>
           <ListItem button>
             <ListItemText
               primary="永夜君王"

@@ -1,5 +1,10 @@
+import * as React from "react";
 import { useInfiniteQuery, useQuery } from "react-query";
+import { useRxCollection } from "rxdb-hooks";
+import { IBookData } from "src/shared/schemas/BookJSchema";
 import { Book } from "src/shared/types/models";
+import { COLLECTION_NAMES } from "../db/collectionNames";
+import { BookModel } from "../db/models/BookModel";
 import {
   BOOK_QKEYS,
   getBook,
@@ -15,6 +20,14 @@ export const useBook = (bookIndex: string, bookId: string) => {
     BOOK_QKEYS.getBook(bookIndex, bookId),
     () => getBook(bookIndex, bookId)
   );
+
+  const bookCol = useRxCollection<IBookData>(COLLECTION_NAMES.book);
+  React.useEffect(() => {
+    if (book && bookCol) {
+      BookModel.addOne(bookCol, book);
+    }
+  }, [bookCol, book?.id, book?.updatedAt, book?.chunks?.length]);
+
   return { book, queryOthers };
 };
 

@@ -221,7 +221,7 @@ export const getStaticPaths: GetStaticPaths = async () => {
     paths: books.map((b) => {
       return {
         params: {
-          slug: [b._index, b.id],
+          slug: [b.esIndex, b.id],
         },
       };
     }),

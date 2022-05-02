@@ -37,7 +37,7 @@ import HistoryIcon from "@mui/icons-material/History";
 import * as pageHrefs from "src/client/pageHrefs";
 import { useRouter } from "next/router";
 import { Book } from "src/shared/types/models";
-import { useRxCollection, useRxData } from "rxdb-hooks";
+import { QueryConstructor, useRxCollection, useRxData } from "rxdb-hooks";
 import { COLLECTION_NAMES } from "../db/collectionNames";
 import {
   ISearchHistoryData,
@@ -170,11 +170,10 @@ export default function AppHeader({
     leading: true,
   });
   const { bookTitleSuggests } = useBookTitleSuggests(debounceAcInputValue);
-  const ashCollection = useRxCollection<ISearchHistoryData>(
+  const shCollection = useRxCollection<ISearchHistoryData>(
     COLLECTION_NAMES.searchHistory
   );
-  const { result: searchHistory } = useRxData<ISearchHistoryDocument>(
-    COLLECTION_NAMES.searchHistory,
+  const shQuery = React.useCallback<QueryConstructor<ISearchHistoryDocument>>(
     (collection) => {
       return collection.find({
         selector: {},
@@ -185,7 +184,12 @@ export default function AppHeader({
         ],
         limit: 5,
       });
-    }
+    },
+    []
+  );
+  const { result: searchHistoryDocs } = useRxData<ISearchHistoryDocument>(
+    COLLECTION_NAMES.searchHistory,
+    shQuery
   );
   const acOptions = React.useMemo<IAcOption[]>(() => {
     const tss: IAcTitleSuggestOption[] =
@@ -195,13 +199,13 @@ export default function AppHeader({
         type: AcType.titleSuggest,
       })) || [];
     const sss: IAcSearchHistoryOption[] =
-      searchHistory?.map((x) => ({
+      searchHistoryDocs?.map((x) => ({
         payload: x,
         text: x.text || "",
         type: AcType.searchHistory,
       })) || [];
     return [...tss, ...sss];
-  }, [bookTitleSuggests, searchHistory]);
+  }, [bookTitleSuggests, searchHistoryDocs]);
 
   return (
     <Slide
@@ -250,8 +254,8 @@ export default function AppHeader({
               if (typeof option === "string") {
                 if (option.length > 0) {
                   const newDoc = await SearchHistoryModel.createData(option);
-                  if (ashCollection) {
-                    SearchHistoryModel.addOne(ashCollection, newDoc);
+                  if (shCollection) {
+                    SearchHistoryModel.addOne(shCollection, newDoc);
                   }
                   await router.push(pageHrefs.search({ text: option }));
                   setAcInputValue(option);
@@ -354,9 +358,9 @@ export default function AppHeader({
                         onClick={(e: React.MouseEvent<HTMLElement>) => {
                           e.preventDefault();
                           e.stopPropagation();
-                          if (ashCollection && option.payload.id) {
+                          if (shCollection && option.payload.id) {
                             SearchHistoryModel.removeOne(
-                              ashCollection,
+                              shCollection,
                               option.payload.id
                             );
                           }
