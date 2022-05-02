@@ -45,6 +45,10 @@ import {
 } from "src/shared/schemas/SearchHistoryJSchema";
 import { SearchHistoryModel } from "../db/models/SearchHistoryModel";
 import ClearIcon from "@mui/icons-material/Clear";
+import { usePageName } from "../hooks/usePageName";
+import { PageNames } from "../pageNames";
+import { routerQueryToSearchBody } from "src/client/utils/search/routerQueryToSearchBody";
+import { ISearchBookBody } from "../services/book";
 
 const Header = styled("header")(({ theme }) => ({
   position: "sticky",
@@ -148,6 +152,18 @@ export default function AppHeader({
   const trigger = useScrollTrigger();
 
   const [acInputValue, setAcInputValue] = React.useState("");
+
+  const pageName = usePageName();
+  React.useEffect(() => {
+    if (
+      pageName === PageNames.Search &&
+      typeof router.query.text === "string" &&
+      router.query.text.length > 0
+    ) {
+      setAcInputValue(router.query.text);
+    }
+  }, [router.query.text, pageName]);
+
   const debounceAcInputValue = useDebounce(acInputValue, {
     wait: 300,
     trailing: true,
@@ -237,7 +253,7 @@ export default function AppHeader({
                   if (ashCollection) {
                     SearchHistoryModel.addOne(ashCollection, newDoc);
                   }
-                  await router.push(pageHrefs.search(option));
+                  await router.push(pageHrefs.search({ text: option }));
                   setAcInputValue(option);
                 }
               } else if (option.type === AcType.titleSuggest) {
@@ -249,7 +265,7 @@ export default function AppHeader({
                 setAcInputValue("");
               } else {
                 SearchHistoryModel.updateCreatedAt(option.payload);
-                await router.push(pageHrefs.search(option.text));
+                await router.push(pageHrefs.search({ text: option.text }));
                 setAcInputValue(option.text);
               }
             }}

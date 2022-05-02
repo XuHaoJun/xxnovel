@@ -33,6 +33,8 @@
     "@nestjs/swagger": "^5.2.1",
     "@next/bundle-analyzer": "^12.1.5",
     "@next/env": "^12.1.5",
+    "@rjsf/core": "^4.1.1",
+    "@rjsf/material-ui": "^4.1.1",
     "@stdlib/error-to-json": "^0.0.7",
     "ahooks": "^3.3.10",
     "autosuggest-highlight": "^3.2.1",

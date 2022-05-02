@@ -45,9 +45,10 @@ export const BOOK_QKEYS = {
   ],
 };
 
-export interface ISearchBookBody {
+export interface ISearchBookBody  {
   text: string;
   categories?: Array<string>;
+  status?: string;
 }
 
 export interface ISearchBookResponseBody {}

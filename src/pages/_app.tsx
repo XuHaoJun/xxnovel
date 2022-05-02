@@ -24,18 +24,21 @@ import DefaultLayout from "src/client/layouts/DefaultLayout";
 import { useScrollRestoration } from "src/client/hooks/useScrollRestoration";
 import { createDb } from "src/client/db/createDb";
 import { PromiseType } from "utility-types";
+import { PageNames } from "src/client/pageNames";
+import { PageNameContext } from "src/client/hooks/usePageName";
 moment.locale("zh-tw");
 
 // Client-side cache, shared for the whole session of the user in the browser.
 const clientSideEmotionCache = createEmotionCache();
 
-type NextPageWithLayout = NextPage & {
+type MyNextPage = NextPage & {
   getLayout?: (page: React.ReactElement) => React.ReactNode;
+  getPageName?: () => PageNames;
 };
 
 interface MyAppProps extends AppProps {
   emotionCache?: EmotionCache;
-  Component: NextPageWithLayout;
+  Component: MyNextPage;
 }
 
 export default function MyApp(props: MyAppProps) {
@@ -71,6 +74,8 @@ export default function MyApp(props: MyAppProps) {
   const getLayout =
     Component.getLayout ?? ((page) => <DefaultLayout>{page}</DefaultLayout>);
 
+  const getPageName = Component.getPageName ?? (() => PageNames.Unknown);
+
   return (
     <CacheProvider value={emotionCache}>
       <Head>
@@ -85,8 +90,10 @@ export default function MyApp(props: MyAppProps) {
             <BrandingProvider>
               <RxDbProvider db={mainDb}>
                 <SnackbarProvider maxSnack={3}>
-                  <NextNProgress showOnShallow={false} />
-                  {getLayout(<Component {...pageProps} />)}
+                  <PageNameContext.Provider value={getPageName()}>
+                    <NextNProgress showOnShallow={false} />
+                    {getLayout(<Component {...pageProps} />)}
+                  </PageNameContext.Provider>
                 </SnackbarProvider>
               </RxDbProvider>
             </BrandingProvider>

@@ -115,3 +115,4 @@ git push origin --tags --force
 
 1. nextjs 12 breaking change nest-next 導致無法 mono, 目前拆分會造成 nextjs image 過大問題(無區分 next 專用 dependencies), 但 runtime memory 不影響
 2. getServerSideProps 斷點無效
+3. Module not found: Can't resolve '@material-ui/??? [@see](https://github.com/rjsf-team/react-jsonschema-form/commit/b25cb60efdc3818bc5bf4a3789829fefc0083f60)

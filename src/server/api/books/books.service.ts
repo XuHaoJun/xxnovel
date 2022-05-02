@@ -180,52 +180,57 @@ export class BooksService {
       }
     }
     const terms = _.flatten(anaResult.tok_fine);
-    const must = [];
+    const otherMust = [];
     if (body.categories) {
-      must.push({
+      otherMust.push({
         terms: {
           category: body.categories,
         },
       });
     }
     if (body.status) {
-      must.push({
+      otherMust.push({
         term: {
           status: body.status,
         },
       });
     }
-    const finalMust = must.length > 0 ? must : undefined;
     const query = {
       bool: {
-        ...(finalMust ? { must: finalMust } : undefined),
-        should: [
+        must: [
+          ...otherMust,
           {
-            fuzzy: {
-              title: { value: text },
-            },
-          },
-          {
-            terms: {
-              title: terms,
-              boost: 3.5,
-            },
-          },
-          {
-            terms: {
-              personNames: terms,
-              boost: 2.0,
-            },
-          },
-          {
-            terms: {
-              authorName: terms,
-              boost: 2.0,
-            },
-          },
-          {
-            terms: {
-              description: terms,
+            bool: {
+              should: [
+                {
+                  fuzzy: {
+                    title: { value: text },
+                  },
+                },
+                {
+                  terms: {
+                    title: terms,
+                    boost: 3.5,
+                  },
+                },
+                {
+                  terms: {
+                    personNames: terms,
+                    boost: 2.0,
+                  },
+                },
+                {
+                  terms: {
+                    authorName: terms,
+                    boost: 2.0,
+                  },
+                },
+                {
+                  terms: {
+                    description: terms,
+                  },
+                },
+              ],
             },
           },
         ],
