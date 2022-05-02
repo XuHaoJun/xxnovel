@@ -5,12 +5,20 @@ export async function createDb() {
   if (typeof window === "undefined") {
     return undefined;
   } else {
-    const createRxDatabase = (await import("rxdb")).createRxDatabase;
-    const { getRxStoragePouch, addPouchPlugin } = await import(
-      "rxdb/plugins/pouchdb"
-    );
+    const [
+      { createRxDatabase, addRxPlugin },
+      { getRxStoragePouch, addPouchPlugin },
+      pouchIdbModule,
+      { RxDBUpdatePlugin },
+    ] = await Promise.all([
+      import("rxdb"),
+      import("rxdb/plugins/pouchdb"),
+      import("pouchdb-adapter-idb"),
+      import("rxdb/plugins/update"),
+    ]);
 
-    addPouchPlugin((await import("pouchdb-adapter-idb")).default);
+    addRxPlugin(RxDBUpdatePlugin);
+    addPouchPlugin(pouchIdbModule.default);
 
     const db = await createRxDatabase({
       name: "xxbook",
