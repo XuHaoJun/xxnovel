@@ -9,7 +9,7 @@ const theme = simpleTheme;
 export default class MyDocument extends Document {
   render() {
     return (
-      <Html lang="en">
+      <Html lang="zh-Hant">
         <Head>
           {/* PWA primary color */}
           <meta name="charset" content="utf-8" />
