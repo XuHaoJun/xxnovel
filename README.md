@@ -36,7 +36,19 @@ Roadmap:
   - [x] Infinite scroll(基於 intersection obsever)
   - [x] Infinite scroll 自動變更 url 與記錄正確 restore scroll 位置
 
+## Requirement
+
+1. nodejs 16.x
+2. elasticsearch 7.x
+3. xxhnalp
+
 ## dev
+
+install
+
+```
+yarnn install --freezon-lockfile
+```
 
 nestjs
 
