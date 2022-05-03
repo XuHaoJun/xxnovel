@@ -34,6 +34,7 @@ import {
   Skeleton,
   Stack,
   useTheme,
+  NoSsr,
 } from "@mui/material";
 
 import Accordion, { AccordionProps } from "@mui/material/Accordion";
@@ -51,7 +52,7 @@ import {
   useInfiniteBookChunks,
 } from "src/client/queries/book";
 import { BOOK_QKEYS, getBook, getBookChunk } from "src/client/services/book";
-import { Book } from "src/shared/types/models";
+import { Book, BookChunk } from "src/shared/types/models";
 import { useChangeLayout } from "src/client/layouts/DefaultLayout";
 import * as pageHrefs from "src/client/pageHrefs";
 import { deleteScrollPos } from "src/client/hooks/useScrollRestoration";
@@ -59,6 +60,7 @@ import { useRxCollection } from "rxdb-hooks";
 import { COLLECTION_NAMES } from "src/client/db/collectionNames";
 import { ViewBookChunkHistoryModel } from "src/client/db/models/ViewBookChunkHistoryModel";
 import type { IViewBookChunkHistoryData } from "src/shared/schemas/ViewBookChunkHistoryJSchema";
+import { TagCloud } from "react-tagcloud";
 
 function parseSlug(slug?: Array<string> | string) {
   if (_.isArray(slug)) {
@@ -76,6 +78,45 @@ interface BookChunkPageProps {
 
 const COOKIE_NAMES: { TEXT_SIZE: string } = {
   TEXT_SIZE: "bookchunk-text-size",
+};
+
+const BookChunkSimpleAnalytics = ({ bookChunk }: { bookChunk: BookChunk }) => {
+  return (
+    <Stack direction="column">
+      <TagCloud
+        tags={(bookChunk.personCounts ?? []).map((pc) => {
+          return {
+            value: pc.tok,
+            count: pc.count,
+          };
+        })}
+        minSize={12}
+        maxSize={55}
+        disableRandomColor
+        renderer={(
+          tag: { value: string; count: number },
+          size: number,
+          color: string
+        ) => {
+          return (
+            <Typography
+              key={tag.value}
+              component="span"
+              sx={{
+                color,
+                fontSize: `${size}px`,
+                margin: "0px 3px",
+                verticalAlign: "middle",
+                display: "inline-block",
+              }}
+            >
+              {tag.value}
+            </Typography>
+          );
+        }}
+      />
+    </Stack>
+  );
 };
 
 const BookChunkPage: FC<BookChunkPageProps> = (props: BookChunkPageProps) => {
@@ -259,6 +300,11 @@ const BookChunkPage: FC<BookChunkPageProps> = (props: BookChunkPageProps) => {
                     {bookChunk?.sectionName}
                   </Typography>
                 </InView>
+                <NoSsr>
+                  <Paper>
+                    <BookChunkSimpleAnalytics bookChunk={bookChunk} />
+                  </Paper>
+                </NoSsr>
                 {bookChunk?.contentLines?.map((x, i) => {
                   return (
                     <Typography

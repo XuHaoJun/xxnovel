@@ -18,7 +18,6 @@ import {
 import _ from "lodash";
 
 import * as Crawler from "../../../lib/crawler/interfaces/Book";
-import { xxhanlpClient } from "../../../lib/xxhanlp/XxHanlpClient";
 
 import {
   SEARCH_INDICES_NAMES,
@@ -29,7 +28,6 @@ import { RequestParams } from "@elastic/elasticsearch";
 import { Paths } from "../../../lib/pathsType";
 import * as TokenizeHelper from "../utils/tokenizeHelper";
 import { UpsertResult } from "../interfaces/UpsertResult";
-import moment from "moment";
 import { $PropertyType } from "utility-types";
 
 export interface ISimpleBookChunk extends Crawler.IBookChunk {
