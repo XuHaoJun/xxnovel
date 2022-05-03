@@ -146,7 +146,6 @@ export default function DefaultLayout({
       if (bookCol && vbchDocs) {
         const bookIds = vbchDocs.map((x) => x.bookId);
         const xs = await bookCol.findByIds(bookIds as Array<string>);
-        console.log(xs);
         setRxBooks(xs);
       }
     };
@@ -206,7 +205,6 @@ export default function DefaultLayout({
         <List subheader={<ListSubheader>最近瀏覽</ListSubheader>}>
           {vbchDocs.map((x) => {
             const book = x.bookId ? rxBooks.get(x.bookId) : null;
-            console.log(x);
             const idx =
               typeof x?.bookChunkIdxByCreatedAt === "number"
                 ? x?.bookChunkIdxByCreatedAt

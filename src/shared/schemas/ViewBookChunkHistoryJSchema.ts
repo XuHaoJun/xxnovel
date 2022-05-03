@@ -29,28 +29,33 @@ export const ViewBookChunkHistoryJSchema: RxJsonSchema<any> = {
     },
     bookChunkId: {
       type: "string",
+      maxLength: 100,
     },
     bookChunkIndex: {
       type: "string",
+      maxLength: 100,
     },
     bookId: {
       type: "string",
       ref: COLLECTION_NAMES.book,
+      maxLength: 100,
     },
     bookIndex: {
       type: "string",
     },
     createdAt: {
-      type: "date-time",
+      type: "string",
+      format: "date-time",
+      maxLength: 100,
     },
   },
   required: [
     "id",
     "bookId",
     "bookIndex",
+    "bookChunkId",
     "bookChunkIdxByCreatedAt",
-    "bookChunkInfo",
     "createdAt",
   ],
-  indexes: ["createdAt"],
+  indexes: ["createdAt", "bookChunkId"],
 } as const;

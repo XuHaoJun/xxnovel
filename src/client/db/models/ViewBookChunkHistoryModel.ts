@@ -2,6 +2,7 @@ import type { RxCollection } from "rxdb";
 
 import type { Book, BookChunk } from "src/shared/types/models";
 import type { IViewBookChunkHistoryData } from "src/shared/schemas/ViewBookChunkHistoryJSchema";
+import moment from "moment";
 
 export class ViewBookChunkHistoryModel {
   public static readonly MAX_SIZE = 50;
@@ -26,23 +27,44 @@ export class ViewBookChunkHistoryModel {
     col: RxCollection<IViewBookChunkHistoryData>,
     vbchData: IViewBookChunkHistoryData
   ) {
-    await col.insert(vbchData);
-    const docs = await col
-      .find({
-        selector: {},
-        sort: [
-          {
-            createdAt: "desc",
-          },
-        ],
+    const old = await col
+      .findOne({
+        selector: {
+          bookChunkId: vbchData.bookChunkId,
+        },
       })
       .exec();
-    if (docs.length > ViewBookChunkHistoryModel.MAX_SIZE) {
-      await col.bulkRemove(
-        docs
-          .slice(ViewBookChunkHistoryModel.MAX_SIZE + 1, docs.length)
-          .map((x) => x.id as string)
-      );
+
+    // deduplicate in 1 day
+    const now = moment();
+    const isSameDay =
+      old &&
+      moment(now)
+        .startOf("day")
+        .diff(moment(old?.createdAt).endOf("day"), "days") < 1;
+    if (isSameDay) {
+      await old.update({ $set: { createdAt: vbchData.createdAt } });
+    } else {
+      await col.insert(vbchData);
+      const docs = await col
+        .find({
+          selector: {},
+          sort: [
+            {
+              createdAt: "desc",
+            },
+          ],
+          skip: ViewBookChunkHistoryModel.MAX_SIZE,
+        })
+        .exec();
+
+      if (docs.length > 0) {
+        await col.bulkRemove(
+          docs
+            .filter((x) => typeof x.id === "string")
+            .map((x) => x.id as string)
+        );
+      }
     }
   }
 }

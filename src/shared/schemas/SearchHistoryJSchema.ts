@@ -20,12 +20,14 @@ export const SearchHistoryJSchema: RxJsonSchema<any> = {
     },
     text: {
       type: "string",
-      minLength: 1,
+      maxLength: 100,
     },
     createdAt: {
-      type: "date-time",
+      type: 'string',
+      format: "date-time",
+      maxLength: 100,
     },
   },
-  required: ["id", "createdAt"],
-  indexes: ["createdAt"],
+  required: ["id", "createdAt", "text"],
+  indexes: ["createdAt", "text"],
 } as const;

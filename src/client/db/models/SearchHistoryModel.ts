@@ -48,9 +48,11 @@ export class SearchHistoryModel {
             createdAt: "desc",
           },
         ],
+        skip: SearchHistoryModel.MAX_SIZE,
       })
       .exec();
-    if (docs.length > SearchHistoryModel.MAX_SIZE) {
+
+    if (docs.length > 0) {
       await shCol.bulkRemove(
         docs
           .slice(SearchHistoryModel.MAX_SIZE + 1, docs.length)

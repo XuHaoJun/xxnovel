@@ -24,14 +24,16 @@ export const BookJSchema: RxJsonSchema<any> = {
     authorName: {
       type: "string",
     },
-    createdAt: {
-      type: "date-time",
-    },
+    // createdAt: {
+    //   type: "date-time",
+    // },
     updatedAt: {
-      type: "date-time",
+      type: "string",
+      format: "date-time",
     },
     importedAt: {
-      type: "date-time",
+      type: "string",
+      format: "date-time",
     },
     category: {
       type: "string",
@@ -68,12 +70,13 @@ export const BookJSchema: RxJsonSchema<any> = {
   },
   required: ["id"],
   indexes: [
-    "createdAt",
-    "updatedAt",
-    "category",
-    "title",
-    "authorName",
-    "esIndex",
-    "status",
+    // "createdAt",
+    // "updatedAt",
+    // ['bookId', ''],
+    // "category",
+    // "title",
+    // "authorName",
+    // "esIndex",
+    // "status",
   ],
 } as const;
