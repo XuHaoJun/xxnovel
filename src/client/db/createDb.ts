@@ -19,6 +19,11 @@ export async function createDb() {
       import("rxdb/plugins/update"),
     ]);
 
+    if (process.env.NODE_ENV !== "production") {
+      const devModeModule = await import("rxdb/plugins/dev-mode");
+      addRxPlugin(devModeModule.RxDBDevModePlugin);
+    }
+
     addRxPlugin(RxDBUpdatePlugin);
     addPouchPlugin(pouchIdbModule.default);
 
