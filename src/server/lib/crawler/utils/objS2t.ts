@@ -1,7 +1,7 @@
 import produce from "immer";
 import _ from "lodash";
 
-import { IBook, IBookChunk } from "../interfaces/Book";
+import { IBook, IBookChunk } from "../interfaces/book";
 import convertToZhTw2 from "./convertToZhTw2";
 import { Paths } from "../../pathsType";
 

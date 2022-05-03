@@ -4,7 +4,7 @@ import produce from "immer";
 import _ from "lodash";
 
 import CrawlerBase, { CrawlerConfig } from "./CrawlerBase";
-import { IBook, IBookChunk } from "./interfaces/Book";
+import { IBook, IBookChunk } from "./interfaces/book";
 import { PtwxzCheerioParser } from "./parsers/PtwxzHtmlParser";
 import * as ObjS2T from "./utils/objS2t";
 

@@ -17,7 +17,7 @@ import {
 } from "@elastic/elasticsearch/lib/Transport";
 import _ from "lodash";
 
-import * as Crawler from "../../../lib/crawler/interfaces/Book";
+import * as Crawler from "../../../lib/crawler/interfaces/book";
 
 import {
   SEARCH_INDICES_NAMES,

@@ -3,7 +3,7 @@ import _ from "lodash";
 import { Paths } from "src/server/lib/pathsType";
 import { xxhanlpClient } from "src/server/lib/xxhanlp/XxHanlpClient";
 
-import * as Crawler from "../../../lib/crawler/interfaces/Book";
+import * as Crawler from "../../../lib/crawler/interfaces/book";
 import {
   SEARCH_INDICES_NAMES,
   SPLITTER_TOKEN,
