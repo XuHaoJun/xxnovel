@@ -20,6 +20,7 @@ import MenuIcon from "@mui/icons-material/Menu";
 import InboxIcon from "@mui/icons-material/MoveToInbox";
 import MailIcon from "@mui/icons-material/Mail";
 import ArrowDownIcon from "@mui/icons-material/ArrowDownward";
+import SettingsIcon from "@mui/icons-material/Settings";
 import HomeIcon from "@mui/icons-material/Home";
 import ExpandMore from "@mui/icons-material/ExpandMore";
 import { setCookies } from "cookies-next";
@@ -210,8 +211,8 @@ export default function DefaultLayout({
                 ? x?.bookChunkIdxByCreatedAt
                 : -1;
             const primary = book?.chunks?.[idx]?.sectionName;
-            const secondary = `${book?.title} - ${moment(x.createdAt).format(
-              "yyyy/MM/DD"
+            const secondary = `${book?.title} • ${moment(x.createdAt).format(
+              "MM/DD LT"
             )}`;
             return (
               <ListItem key={x.id} button>
@@ -225,7 +226,7 @@ export default function DefaultLayout({
           </ListItemButton>
         </List>
         <Divider />
-        <List subheader={<ListSubheader>訂閱書籍(未完成)</ListSubheader>}>
+        <List subheader={<ListSubheader>收藏書籍(未完成)</ListSubheader>}>
           <ListItem button>
             <ListItemText
               primary="第四百八十五章 別苗頭"
@@ -246,15 +247,23 @@ export default function DefaultLayout({
         <Divider />
         <List subheader={<ListSubheader>推薦書籍(未完成)</ListSubheader>}>
           <ListItem button>
-            <ListItemText
-              primary="永夜君王"
-              secondary="類別: 玄幻魔法 | 作者: 煙雨江南"
-            />
+            <ListItemText primary="永夜君王" secondary="玄幻魔法 . 煙雨江南" />
           </ListItem>
           <ListItemButton>
             <ExpandMore />
             <ListItemText primary="顯示更多" />
           </ListItemButton>
+        </List>
+        <Divider />
+        <List subheader={<ListSubheader>其他功能</ListSubheader>}>
+          <NextLink href="/settings" passHref>
+            <ListItemButton component="a">
+              <ListItemIcon>
+                <SettingsIcon />
+              </ListItemIcon>
+              <ListItemText primary="設定" />
+            </ListItemButton>
+          </NextLink>
         </List>
       </Drawer>
       <Main open={open}>{children}</Main>

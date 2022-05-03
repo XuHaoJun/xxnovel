@@ -12,11 +12,13 @@ export async function createDb() {
       { getRxStoragePouch, addPouchPlugin },
       pouchIdbModule,
       { RxDBUpdatePlugin },
+      { RxDBJsonDumpPlugin },
     ] = await Promise.all([
       import("rxdb"),
       import("rxdb/plugins/pouchdb"),
       import("pouchdb-adapter-idb"),
       import("rxdb/plugins/update"),
+      import("rxdb/plugins/json-dump"),
     ]);
 
     if (process.env.NODE_ENV !== "production") {
@@ -25,6 +27,7 @@ export async function createDb() {
     }
 
     addRxPlugin(RxDBUpdatePlugin);
+    addRxPlugin(RxDBJsonDumpPlugin);
     addPouchPlugin(pouchIdbModule.default);
 
     const db = await createRxDatabase({

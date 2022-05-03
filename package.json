@@ -74,6 +74,7 @@
     "random-useragent": "^0.5.0",
     "react": "18.x",
     "react-dom": "18.x",
+    "react-dropzone": "^14.2.0",
     "react-intersection-observer": "^9.1.0",
     "react-lazy-load-image-component": "^1.5.4",
     "react-query": "4.0.0-beta.3",
@@ -85,6 +86,7 @@
     "rxdb-hooks": "^4.0.2",
     "rxjs": "^7.2.0",
     "source-map-support": "^0.5.21",
+    "streamsaver": "^2.0.6",
     "swagger-ui-express": "^4.3.0"
   },
   "license": "MIT",
@@ -107,6 +109,7 @@
     "@types/react-scroll": "^1.8.3",
     "@types/react-tagcloud": "^1.1.7",
     "@types/source-map-support": "^0.5.4",
+    "@types/streamsaver": "^2.0.1",
     "eslint": "^8.13.0",
     "eslint-config-next": "^12.1.4",
     "prettier": "^2.6.2",
