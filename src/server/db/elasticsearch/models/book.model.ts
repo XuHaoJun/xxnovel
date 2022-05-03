@@ -17,7 +17,7 @@ import {
 } from "@elastic/elasticsearch/lib/Transport";
 import _ from "lodash";
 
-import * as Crawler from "../../../lib/crawler/interfaces/book";
+import * as Crawler from "../../../lib/crawler/interfaces/Book";
 import { xxhanlpClient } from "../../../lib/xxhanlp/XxHanlpClient";
 
 import {
