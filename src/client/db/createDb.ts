@@ -21,17 +21,17 @@ export async function createDb() {
       import("rxdb/plugins/dexie"),
     ]);
 
-    if (process.env.NODE_ENV !== "production") {
-      const devModeModule = await import("rxdb/plugins/dev-mode");
-      if (!module.hot?.data?.isAddDevModeModule) {
-        addRxPlugin(devModeModule.RxDBDevModePlugin);
-      }
-      if (module.hot) {
-        module.hot.dispose((data: any) => {
-          data.isAddDevModeModule = true;
-        });
-      }
-    }
+    // if (process.env.NODE_ENV !== "production") {
+    //   const devModeModule = await import("rxdb/plugins/dev-mode");
+    //   if (!module.hot?.data?.isAddDevModeModule) {
+    //     addRxPlugin(devModeModule.RxDBDevModePlugin);
+    //   }
+    //   if (module.hot) {
+    //     module.hot.dispose((data: any) => {
+    //       data.isAddDevModeModule = true;
+    //     });
+    //   }
+    // }
 
     addRxPlugin(RxDBUpdatePlugin);
     addRxPlugin(RxDBJsonDumpPlugin);
