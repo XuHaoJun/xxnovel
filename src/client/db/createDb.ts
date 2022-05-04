@@ -3,6 +3,8 @@ import { ViewBookChunkHistoryJSchema } from "src/shared/schemas/ViewBookChunkHis
 import { SearchHistoryJSchema } from "../../shared/schemas/SearchHistoryJSchema";
 import { COLLECTION_NAMES } from "./collectionNames";
 
+declare const module: any;
+
 export async function createDb() {
   if (typeof window === "undefined") {
     return undefined;
@@ -13,7 +15,7 @@ export async function createDb() {
       { RxDBJsonDumpPlugin },
       { getRxStorageDexie },
     ] = await Promise.all([
-      import("rxdb"),
+      import("rxdb/plugins/core"),
       import("rxdb/plugins/update"),
       import("rxdb/plugins/json-dump"),
       import("rxdb/plugins/dexie"),
@@ -21,7 +23,14 @@ export async function createDb() {
 
     if (process.env.NODE_ENV !== "production") {
       const devModeModule = await import("rxdb/plugins/dev-mode");
-      addRxPlugin(devModeModule.RxDBDevModePlugin);
+      if (!module.hot?.data?.isAddDevModeModule) {
+        addRxPlugin(devModeModule.RxDBDevModePlugin);
+      }
+      if (module.hot) {
+        module.hot.dispose((data: any) => {
+          data.isAddDevModeModule = true;
+        });
+      }
     }
 
     addRxPlugin(RxDBUpdatePlugin);
