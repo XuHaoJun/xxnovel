@@ -19,7 +19,7 @@ export class ViewBookChunkHistoryModel {
       bookChunkIndex: bookChunk._index,
       bookId: book.id,
       bookIndex: book.esIndex,
-      createdAt: new Date(),
+      createdAt: new Date().toISOString(),
     };
   }
 

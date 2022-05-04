@@ -44,10 +44,30 @@ export const BookJSchema: RxJsonSchema<any> = {
     numChar: {
       type: "integer",
     },
+    numBookChunks: {
+      type: "integer",
+    },
     descriptionLines: {
       type: "array",
       items: {
         type: "string",
+      },
+    },
+    latestChunk: {
+      type: "object",
+      properties: {
+        chapterName: {
+          type: "string",
+        },
+        sectionName: {
+          type: "string",
+        },
+        url: {
+          type: "string",
+        },
+        idxByCreatedAtAsc: {
+          type: "integer",
+        },
       },
     },
     chunks: {
@@ -55,10 +75,13 @@ export const BookJSchema: RxJsonSchema<any> = {
       items: {
         type: "object",
         properties: {
-          esIndex: {
+          chapterName: {
             type: "string",
           },
-          id: {
+          sectionName: {
+            type: "string",
+          },
+          url: {
             type: "string",
           },
           idxByCreatedAtAsc: {

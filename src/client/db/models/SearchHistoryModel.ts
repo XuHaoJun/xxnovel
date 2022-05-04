@@ -13,7 +13,7 @@ export class SearchHistoryModel {
     return {
       id: new BSON.ObjectId().toString(),
       text,
-      createdAt: new Date(),
+      createdAt: new Date().toISOString(),
     };
   }
 
@@ -23,7 +23,7 @@ export class SearchHistoryModel {
   ) {
     return doc.update({
       $set: {
-        createdAt: createdAt || new Date(),
+        createdAt: createdAt || new Date().toISOString(),
       },
     });
   }

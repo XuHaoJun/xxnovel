@@ -8,7 +8,7 @@ export interface IViewBookChunkHistoryData {
   bookChunkIndex?: string;
   bookId?: string;
   bookIndex?: string;
-  createdAt?: Date;
+  createdAt?: string;
 }
 
 export type IViewBookChunkHistoryDocument =

@@ -3,7 +3,7 @@ import type { RxDocument, RxJsonSchema } from "rxdb";
 export interface ISearchHistoryData {
   id?: string;
   text?: string;
-  createdAt?: Date;
+  createdAt?: string;
 }
 
 export type ISearchHistoryDocument = RxDocument<ISearchHistoryData>;

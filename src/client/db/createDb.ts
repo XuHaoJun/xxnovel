@@ -9,16 +9,14 @@ export async function createDb() {
   } else {
     const [
       { createRxDatabase, addRxPlugin },
-      { getRxStoragePouch, addPouchPlugin },
-      pouchIdbModule,
       { RxDBUpdatePlugin },
       { RxDBJsonDumpPlugin },
+      { getRxStorageDexie },
     ] = await Promise.all([
       import("rxdb"),
-      import("rxdb/plugins/pouchdb"),
-      import("pouchdb-adapter-idb"),
       import("rxdb/plugins/update"),
       import("rxdb/plugins/json-dump"),
+      import("rxdb/plugins/dexie"),
     ]);
 
     if (process.env.NODE_ENV !== "production") {
@@ -28,11 +26,10 @@ export async function createDb() {
 
     addRxPlugin(RxDBUpdatePlugin);
     addRxPlugin(RxDBJsonDumpPlugin);
-    addPouchPlugin(pouchIdbModule.default);
 
     const db = await createRxDatabase({
       name: "xxbook",
-      storage: getRxStoragePouch("idb"),
+      storage: getRxStorageDexie(),
     });
 
     await db.addCollections({
