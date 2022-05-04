@@ -263,6 +263,9 @@ const BookChunkPage: FC<BookChunkPageProps> = (props: BookChunkPageProps) => {
         </FormControl>
         <Stack spacing={2}>
           {bookChunks?.map((bookChunk, i) => {
+            const readTime = Math.round(
+              _.sum(bookChunk.contentLines?.map((x: string) => x.length)) / 400
+            );
             return (
               <Paper
                 key={`bookchunk-${i}`}
@@ -296,8 +299,9 @@ const BookChunkPage: FC<BookChunkPageProps> = (props: BookChunkPageProps) => {
                     }
                   }}
                 >
-                  <Typography variant="h5" sx={{ marginBottom: "2rem" }}>
-                    {bookChunk?.sectionName}
+                  <Typography variant="h5">{bookChunk?.sectionName}</Typography>
+                  <Typography variant="subtitle2" sx={{ marginBottom: "2rem" }}>
+                    read {readTime} min
                   </Typography>
                 </InView>
                 <NoSsr>
