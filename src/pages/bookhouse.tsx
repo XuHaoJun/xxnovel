@@ -4,9 +4,6 @@ import RGL, { WidthProvider, Layout } from "react-grid-layout";
 import { Box, NoSsr, Container } from "@mui/material";
 import { useDebounce } from "ahooks";
 
-import("react-grid-layout/css/styles.css");
-import("react-resizable/css/styles.css");
-
 const ReactGridLayout = WidthProvider(RGL);
 
 const getDefaultProps = (): ReactGridLayout.ReactGridLayoutProps => ({
@@ -37,8 +34,8 @@ const BookHousePage = () => {
   const generateDOM = () => {
     return _.map(_.range(items), function (i) {
       return (
-        <Box component="div" key={i} sx={{ backgroundColor: "gray" }}>
-          <span className="text">{i}</span>
+        <Box component="div" key={i} sx={{ backgroundColor: "#c2c0ba" }}>
+          <span className="text">我是書或章節 {i}</span>
         </Box>
       );
     });

@@ -22,6 +22,7 @@ import MailIcon from "@mui/icons-material/Mail";
 import ArrowDownIcon from "@mui/icons-material/ArrowDownward";
 import SettingsIcon from "@mui/icons-material/Settings";
 import HomeIcon from "@mui/icons-material/Home";
+import BookmarksIcon from "@mui/icons-material/Bookmarks";
 import ExpandMore from "@mui/icons-material/ExpandMore";
 import { setCookies } from "cookies-next";
 
@@ -199,6 +200,14 @@ export default function DefaultLayout({
                 <HomeIcon />
               </ListItemIcon>
               <ListItemText primary="首頁" />
+            </ListItemButton>
+          </NextLink>
+          <NextLink href="/bookhouse" passHref>
+            <ListItemButton component="a">
+              <ListItemIcon>
+                <BookmarksIcon />
+              </ListItemIcon>
+              <ListItemText primary="我的收藏" />
             </ListItemButton>
           </NextLink>
         </List>

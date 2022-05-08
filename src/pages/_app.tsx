@@ -1,3 +1,6 @@
+import "../client/styles/global/reactGridLayout.css";
+import "../client/styles/global/reactResizable.css";
+
 import { enableMapSet } from "immer";
 
 enableMapSet();
