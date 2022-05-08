@@ -50,7 +50,7 @@ TODO:
 install
 
 ```
-yarnn install --freezon-lockfile
+yarn install --freezon-lockfile
 ```
 
 nestjs
@@ -77,6 +77,7 @@ build & push & release nestjs api server
 
 ```shell
 docker build -t registry.heroku.com/yourAppName/web -f ./Dockerfile.nest .
+heroku container:login
 docker push registry.heroku.com/yourAppName/web
 heroku container:release web --app yourAppName
 ```
