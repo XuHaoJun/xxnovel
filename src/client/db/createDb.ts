@@ -14,11 +14,13 @@ export async function createDb() {
       { RxDBUpdatePlugin },
       { RxDBJsonDumpPlugin },
       { getRxStorageDexie },
+      { RxDBMigrationPlugin },
     ] = await Promise.all([
       import("rxdb/plugins/core"),
       import("rxdb/plugins/update"),
       import("rxdb/plugins/json-dump"),
       import("rxdb/plugins/dexie"),
+      import("rxdb/plugins/migration"),
     ]);
 
     // if (process.env.NODE_ENV !== "production") {
@@ -35,21 +37,32 @@ export async function createDb() {
 
     addRxPlugin(RxDBUpdatePlugin);
     addRxPlugin(RxDBJsonDumpPlugin);
+    addRxPlugin(RxDBMigrationPlugin);
 
     const db = await createRxDatabase({
       name: "xxbook",
       storage: getRxStorageDexie(),
     });
 
+    const migrateRemoveDoc = () => null;
     await db.addCollections({
       [COLLECTION_NAMES.book]: {
         schema: BookJSchema,
+        migrationStrategies: {
+          1: migrateRemoveDoc,
+        },
       },
       [COLLECTION_NAMES.searchHistory]: {
         schema: SearchHistoryJSchema,
+        migrationStrategies: {
+          1: migrateRemoveDoc,
+        },
       },
       [COLLECTION_NAMES.viewBookChunkHistory]: {
         schema: ViewBookChunkHistoryJSchema,
+        migrationStrategies: {
+          1: migrateRemoveDoc,
+        },
       },
     });
 
