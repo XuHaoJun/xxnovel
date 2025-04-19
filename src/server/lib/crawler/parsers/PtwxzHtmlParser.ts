@@ -4,7 +4,7 @@ import { ElementType } from "htmlparser2";
 import type { Text } from "domhandler";
 import "moment-timezone";
 import moment from "moment";
-import { IBook, IBookChunk } from "../interfaces/book";
+import { IBook, IBookChunk } from "../interfaces/Book";
 import path from "path";
 
 export class PtwxzCheerioParser {

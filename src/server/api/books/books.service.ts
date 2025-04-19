@@ -29,7 +29,7 @@ import produce from "immer";
 import { QueryPaginationRange, SearchBookReqDto } from "./dto/search.dto";
 import { XxHanlpService } from "src/server/lib/xxhanlp/nest/xxhanlp.service";
 import { NerMsraTag } from "src/server/lib/xxhanlp/XxHanlpClient";
-import { IBookChunk } from "src/server/lib/crawler/interfaces/book";
+import { IBookChunk } from "src/server/lib/crawler/interfaces/Book";
 
 @Injectable()
 export class BooksService {

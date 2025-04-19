@@ -12,6 +12,16 @@ const singletonHttpClients: {
 
 export function getApiHttpClient() {
   const runtime = detect();
+  // In server-side environment, default to node environment if detection fails
+  if (!runtime && typeof window === 'undefined') {
+    if (!singletonHttpClients.server) {
+      const httpClient = createHttpClient({ timeout: 1000 * 60 * 5 });
+      singletonHttpClients.server = httpClient;
+      return singletonHttpClients.server;
+    }
+    return singletonHttpClients.server;
+  }
+  
   if (!runtime) {
     throw new Error("not detect runtime!");
   } else {

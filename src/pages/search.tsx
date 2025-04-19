@@ -18,11 +18,8 @@ import {
 } from "@mui/material";
 import type { JSONSchema7 } from "json-schema";
 
-/**
- * Module not found: Can't resolve '@material-ui/???
- * @see https://github.com/rjsf-team/react-jsonschema-form/commit/b25cb60efdc3818bc5bf4a3789829fefc0083f60
- */
-import { MuiForm5 as Form } from "@rjsf/material-ui";
+import Form from "@rjsf/mui";
+import validator from "@rjsf/validator-ajv8";
 
 import { useRouter } from "next/router";
 import { useSearchBook } from "src/client/queries/book";
@@ -202,6 +199,7 @@ const SearchFilter = (props: SearchFilterProps) => {
 
   return (
     <Form
+      validator={validator}
       schema={schema}
       uiSchema={{
         "ui:submitButtonOptions": {
@@ -210,6 +208,9 @@ const SearchFilter = (props: SearchFilterProps) => {
       }}
       formData={formData}
       onChange={({ formData: nextFormData }: IChangeEvent<IFormData>) => {
+        if (!nextFormData) {
+          return;
+        }
         const categoryAny = "any";
         const finalFormData = produce(nextFormData, (draft: IFormData) => {
           if (nextFormData.categories.length === 0) {
